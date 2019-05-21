@@ -40,3 +40,12 @@ Route::post($route.'retrieve', $controller."retrieve");
 Route::post($route.'update', $controller."update");
 Route::post($route.'delete', $controller."delete");
 Route::get($route.'test', $controller."test");
+
+// Account Online Status
+$route = env('PACKAGE_ROUTE', '').'/account_online_status/';
+$controller = 'Increment\Account\Http\AccountOnlineController@';
+Route::post($route.'create', $controller."create");
+Route::post($route.'retrieve', $controller."retrieve");
+Route::post($route.'update', $controller."update");
+Route::post($route.'delete', $controller."delete");
+Route::get($route.'test', $controller."test");
