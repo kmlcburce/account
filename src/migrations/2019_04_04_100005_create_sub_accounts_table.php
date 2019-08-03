@@ -17,7 +17,7 @@ class CreateSubAccountsTable extends Migration
             $table->bigIncrements('id');
             $table->bigInteger('account_id');
             $table->bigInteger('member');
-            $table->unsignedInteger('status');
+            $table->string('status');
             $table->timestamps();
             $table->softDeletes();
         });
