@@ -125,6 +125,16 @@ class AccountController extends APIController
         return response()->json(array('data' => false));
       }
     }
+
+    public function updatePasswordViaSubAccount($accountId, $password){
+      $invitationPassword = $password;
+      $password = Hash::make($password);
+      Account::where('id', '=', $accountId)->update(array(
+        'password' => $password
+      ));
+      app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
+      return true;
+    }
     public function hashPassword($password){
       $data['password'] = Hash::make($password);
       return $data;

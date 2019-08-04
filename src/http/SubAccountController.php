@@ -39,4 +39,18 @@ class SubAccountController extends APIController
       return $this->response();
     }
 
+    public function update(Request $request){
+      $data = $request->all();
+      // $password = $data['password'];
+      $updateStatus = array(
+        'id' => $data['id'],
+        'status' => $data['status']
+      );
+
+      // app('Increment\Account\Http\AccountController')->updatePasswordViaSubAccount($data['account_id'], $password);
+      $this->model = new SubAccount();
+      $this->updateDB($updateStatus);
+      return $this->response();
+    }
+
 }
