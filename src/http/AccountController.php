@@ -23,6 +23,7 @@ class AccountController extends APIController
     public function create(Request $request){
      $request = $request->all();
      $referralCode = $request['referral_code'];
+     $invitationPassword = $request['password'];
      $dataAccount = array(
       'code'  => $this->generateCode(),
       'password'        => Hash::make($request['password']),
@@ -39,9 +40,15 @@ class AccountController extends APIController
      if($accountId){
        $this->createDetails($accountId, $request['account_type']);
        //send email verification here
-       app('App\Http\Controllers\EmailController')->verification($accountId);
        if($referralCode != null){
           app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
+       }
+       if(env('SUB_ACCOUNT') == true){
+          $status = $request['status'];
+          app('Increment\Account\Http\SubAccountController')->createByParams($request['account_id'], $accountId, $status);
+          app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
+       }else{
+          app('App\Http\Controllers\EmailController')->verification($accountId);
        }
      }
     
@@ -117,6 +124,16 @@ class AccountController extends APIController
       }else{
         return response()->json(array('data' => false));
       }
+    }
+
+    public function updatePasswordViaSubAccount($accountId, $password){
+      $invitationPassword = $password;
+      $password = Hash::make($password);
+      Account::where('id', '=', $accountId)->update(array(
+        'password' => $password
+      ));
+      app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
+      return true;
     }
     public function hashPassword($password){
       $data['password'] = Hash::make($password);
