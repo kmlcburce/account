@@ -144,4 +144,47 @@ class AccountController extends APIController
       return Account::where('id', '=', $accountId)->get();
     }
 
+    public function updatePassword(Request $request){ 
+      $data = $request->all();
+      $data['password'] = Hash::make($data['password']);
+      $this->updateDB($data);
+      return $this->response();
+    }
+
+    public function updateEmail(Request $request){
+      $request = $request->all();
+      $result = Account::where('email', '=', $request['email'])->get();
+      $text = array('email' => $request['email']);
+      if(sizeof($result) <= 0 && $this->customValidate($text) == true){
+        $this->model = new Account();
+        $updateData = array(
+          'id' => $request['id'],
+          'email' => $request['email']
+        );
+        $this->updateDB($updateData);
+        if($this->response['data'] == true){
+          $account = Account::where('id', '=', $request['id'])->get();
+          return $this->response();
+        }else{
+          return response()->json(array('data' => false, 'error' => 'Unable to update please contact the support.'));
+        }
+      }else{
+        return response()->json(array('data' => false, 'error' => 'Email already used.'));
+      }
+    }
+
+    public function customValidate($text){
+      $validation = array('email' => 'required|email'); 
+      return $this->validateReply($text, $validation);
+    }
+
+    public function validateReply($text, $validation){
+      $validator = Validator::make($text, $validation);
+      if($validator->fails()){
+        return false;
+      }
+      else
+        return true;
+    }
+
 }

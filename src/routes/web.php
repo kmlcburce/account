@@ -30,6 +30,8 @@ Route::get($route.'test', $controller."test");
 Route::post($route.'mail',  $controller."testMail");
 Route::post($route.'verify', $controller."verify");
 Route::post($route.'request_reset',  $controller."requestReset");
+Route::post($route.'update_password', $controller.'updatePassword');
+Route::post($route.'update_email', $controller.'updateEmail');
 
 
 // Account Profile
