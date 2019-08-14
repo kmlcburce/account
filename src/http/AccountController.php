@@ -10,6 +10,7 @@ use App\Http\Controllers\APIController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 class AccountController extends APIController
 {
     function __construct(){  
