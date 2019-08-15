@@ -39,6 +39,11 @@ class SubAccountController extends APIController
       return $this->response();
     }
 
+    public function retrieveByParams($column, $value){
+      $result = SubAccount::where($column, '=', $value)->get();
+      return (sizeof($result) > 0) ? $result[0] : null;
+    }
+
     public function update(Request $request){
       $data = $request->all();
       // $password = $data['password'];

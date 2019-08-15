@@ -106,7 +106,7 @@ class AccountController extends APIController
       }
     }
 
-    public function update(Request $request){ 
+    public function update(Request $request){
       $data = $request->all();
       $result = Account::where('code', '=', $data['code'])->where('username', '=', $data['username'])->get();
       if(sizeof($result) > 0){
@@ -165,6 +165,12 @@ class AccountController extends APIController
     public function updatePassword(Request $request){ 
       $data = $request->all();
       $data['password'] = Hash::make($data['password']);
+      $this->updateDB($data);
+      return $this->response();
+    }
+
+    public function updateType(Request $request){ 
+      $data = $request->all();
       $this->updateDB($data);
       return $this->response();
     }
