@@ -18,4 +18,10 @@ class AccountSetTypeController extends APIController
       return (sizeof($result) > 0) ? sizeof($result) : null;
     }
 
+    public function createByParams($accountId){
+      $model = new AccountSetType();
+      $model->account_id = $accountId;
+      $model->created_at = Carbon::now();
+      $model->save();
+    }
 }

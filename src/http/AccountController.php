@@ -172,6 +172,7 @@ class AccountController extends APIController
     public function updateType(Request $request){ 
       $data = $request->all();
       $this->updateDB($data);
+      app('Increment\Account\Http\AccountSetTypeController')->createByParams($data['id']);
       return $this->response();
     }
 
