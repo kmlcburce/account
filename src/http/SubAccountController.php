@@ -41,6 +41,13 @@ class SubAccountController extends APIController
 
     public function retrieveByParams($column, $value){
       $result = SubAccount::where($column, '=', $value)->get();
+      if(sizeof($result) > 0){
+        $i = 0;
+        foreach ($result as $key) {
+          $result[$i]['set_types'] = app('Increment\Account\Http\AccountSetTypeController')->retrieveByParams('account_id', $result[$i]['member']);
+          $i++;
+        }
+      }
       return (sizeof($result) > 0) ? $result[0] : null;
     }
 
