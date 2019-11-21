@@ -51,10 +51,8 @@ class AccountController extends APIController
           }else{
             app('Increment\Account\Http\SubAccountController')->createByParams($request['account_id'], $accountId, $status);
           }
-          app('App\Http\Controllers\EmailController')->verification($accountId); 
-          if($data['referral_code'] != null || $data['referral_code'] != ''){
-            // app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);  
-          }
+          app('App\Http\Controllers\EmailController')->verification($accountId);
+          app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);  
        }
      }
     
