@@ -168,7 +168,8 @@ class AccountController extends APIController
       if(sizeof($result) > 0){
         $i = 0;
         foreach ($result as $key) {
-          $result[$i]['account'] = $result[$i];
+          $account = Account::where('id', '=', $result[$i]['id'])->get();
+          $result[$i]['account'] = sizeof($account) > 0 ? $account[0] : null;
           $result[$i] = $this->retrieveAppDetails($result[$i], $result[$i]['id']);
           $i++;
         }
