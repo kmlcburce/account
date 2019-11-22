@@ -160,7 +160,6 @@ class AccountController extends APIController
       }
     }
 
-
     public function retrieveAccounts(Request $request){
       $data = $request->all();
       $this->model = new Account();
@@ -168,13 +167,11 @@ class AccountController extends APIController
       if(sizeof($result) > 0){
         $i = 0;
         foreach ($result as $key) {
-          $result[$i] = $this->retrieveAppDetails($result[$i], $result[$i]['id']);
+          $this->response['data'][$i] = $this->retrieveAppDetails($result[$i], $result[$i]['id']);
           $i++;
         }
-        return response()->json(array('data' => $result));
-      }else{
-        return $this->response();
       }
+      return $this->response();
     }
 
     public function retrieveById($accountId){
