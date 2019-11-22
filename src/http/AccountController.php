@@ -148,11 +148,27 @@ class AccountController extends APIController
       $data = $request->all();
       $this->model = new Account();
       $result = $this->retrieveDB($data);
-
       if(sizeof($result) > 0){
         $i = 0;
         foreach ($result as $key) {
           $result[$i] = $this->retrieveDetailsOnLogin($result[$i]);
+          $i++;
+        }
+        return response()->json(array('data' => $result));
+      }else{
+        return $this->response();
+      }
+    }
+
+
+    public function retrieveAccounts(Request $request){
+      $data = $request->all();
+      $this->model = new Account();
+      $result = $this->retrieveDB($data);
+      if(sizeof($result) > 0){
+        $i = 0;
+        foreach ($result as $key) {
+          $result[$i] = $this->retrieveAppDetails($result[$i], $result[$i]['id']);
           $i++;
         }
         return response()->json(array('data' => $result));
