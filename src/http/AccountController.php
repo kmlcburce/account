@@ -168,7 +168,7 @@ class AccountController extends APIController
       if(sizeof($result) > 0){
         $i = 0;
         foreach ($result as $key) {
-          $this->response['data'][$i]['account'] = $this->retrieveAccountDetails($$result[$i]['id']);
+          $this->response['data'][$i]['account'] = $this->retrieveAccountDetails($result[$i]['id']);
           $this->response['data'][$i] = $this->retrieveAppDetails($result[$i], $result[$i]['id']);
           $i++;
         }
