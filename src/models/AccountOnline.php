@@ -9,4 +9,12 @@ class AccountOnlines extends APIModel
 {
     protected $table = 'account_onlines';
     protected $fillable = ['account_id', 'status'];
+
+    public function getAccountIdAttribute($value){
+      return intval($value);
+    }
+
+    public function getStatusAttribute($value){
+      return intval($value);
+    }
 }

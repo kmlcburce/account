@@ -9,5 +9,9 @@ class AccountInformation extends APIModel
 {
 
   protected $table = "account_informations";
-  protected $fillable = ['first_name', 'last_name', 'middle_name', 'birth_date', 'sex', 'cellular_number', 'address'];
+  protected $fillable = ['account_id', 'first_name', 'last_name', 'middle_name', 'birth_date', 'sex', 'cellular_number', 'address'];
+
+  public function getAccountIdAttribute($value){
+    return intval($value);
+  }
 }
