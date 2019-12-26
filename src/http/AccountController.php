@@ -50,9 +50,9 @@ class AccountController extends APIController
             app('Increment\Account\Http\SubAccountController')->createByParams($accountId, $accountId, $status);
           }else{
             app('Increment\Account\Http\SubAccountController')->createByParams($request['account_id'], $accountId, $status);
+            app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
           }
           app('App\Http\Controllers\EmailController')->verification($accountId);
-          app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);  
        }
      }
     
