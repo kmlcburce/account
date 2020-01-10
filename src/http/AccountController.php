@@ -120,7 +120,7 @@ class AccountController extends APIController
         $this->model = new Account();
         $this->updateDB($updateData);
         if($this->response['data'] == true){
-          dispatch(new Email($result[0], 'reset_password'));
+          // send email notifications for password update
           return $this->response();
         }else{
           return response()->json(array('data' => false));
