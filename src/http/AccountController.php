@@ -170,6 +170,11 @@ class AccountController extends APIController
         foreach ($result as $key) {
           $this->response['data'][$i] = $this->retrieveAppDetails($result[$i], $result[$i]['id']);
           $this->response['data'][$i]['account'] = $this->retrieveAccountDetails($result[$i]['id']);
+          $this->response['data'][$i]['partner_locations'] = null;
+          if(env('PARTNER_LOCATIONS') == true){
+            $this->response['data'][$i]['partner_locations'] = app(
+              'App\Http\Controllers\InvestorLocationController')->getByParams('account_id', $result[$i]['id']);
+          }
           $i++;
         }
       }
