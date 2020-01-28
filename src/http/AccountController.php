@@ -185,6 +185,10 @@ class AccountController extends APIController
       return Account::where('id', '=', $accountId)->get();
     }
 
+    public function retrieveByEmailAndCode($email, $code){
+      return Account::where('code', '=', $code)->where('email', '=', $email)->get();
+    }
+
     public function updatePassword(Request $request){ 
       $data = $request->all();
       $data['password'] = Hash::make($data['password']);
