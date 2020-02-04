@@ -40,7 +40,7 @@ class AccountInformationController extends APIController
   public function getAccountInformation($accountId){
     $result = AccountInformation::where('account_id', '=', $accountId)->get();
     if(sizeof($result) > 0){
-      $result[0]['birth_date_human'] = Carbon::createFromFormat('Y-m-d', $result[0]['birth_date'])->copy()->tz($this->response['timezone'])->format('F j, Y');
+      $result[0]['birth_date_human'] = ($result[0]['birth_date'] != null && $result[0]['birth_date'] != '') ?Carbon::createFromFormat('Y-m-d', $result[0]['birth_date'])->copy()->tz($this->response['timezone'])->format('F j, Y') : null;
     }
     return (sizeof($result) > 0) ? $result[0] : null;
   }
