@@ -69,6 +69,8 @@ class AccountController extends APIController
       $billing->account_id = $accountId;
       $billing->created_at = Carbon::now();
       $billing->save();
+
+      app('App\Http\Controllers\NotificationSettingController')->insert($accountId);
     }
 
     public function generateCode(){
