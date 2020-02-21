@@ -13,7 +13,10 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 class AccountController extends APIController
 {
-    function __construct(){  
+    function __construct(){
+      if($this->checkAuthenticatedUser() == false){
+        return $this->response();
+      }
       $this->model = new Account();
       $this->validation = array(  
         "email" => "unique:accounts",
