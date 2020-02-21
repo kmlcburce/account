@@ -14,9 +14,6 @@ use Illuminate\Support\Facades\Validator;
 class AccountController extends APIController
 {
     function __construct(){
-      if($this->checkAuthenticatedUser() == false){
-        return $this->response();
-      }
       $this->model = new Account();
       $this->validation = array(  
         "email" => "unique:accounts",
@@ -104,6 +101,9 @@ class AccountController extends APIController
     }
 
     public function requestReset(Request $request){
+      if($this->checkAuthenticatedUser() == false){
+        return $this->response();
+      }
       $data = $request->all();
       $result = Account::where('email', '=', $data['email'])->get();
       if(sizeof($result) > 0){
@@ -115,6 +115,9 @@ class AccountController extends APIController
     }
 
     public function update(Request $request){
+      if($this->checkAuthenticatedUser() == false){
+        return $this->response();
+      }
       $data = $request->all();
       $result = Account::where('code', '=', $data['code'])->where('username', '=', $data['username'])->get();
       if(sizeof($result) > 0){
@@ -212,6 +215,9 @@ class AccountController extends APIController
     }
 
     public function updateEmail(Request $request){
+      if($this->checkAuthenticatedUser() == false){
+        return $this->response();
+      }
       $request = $request->all();
       $result = Account::where('email', '=', $request['email'])->get();
       $text = array('email' => $request['email']);
