@@ -167,6 +167,9 @@ class AccountController extends APIController
       $data = $request->all();
       $this->model = new Account();
       $result = $this->retrieveDB($data);
+      if(!$result){
+        return $this->response();
+      }
       if(sizeof($result) > 0){
         $i = 0;
         foreach ($result as $key) {
