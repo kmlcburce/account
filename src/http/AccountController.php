@@ -35,7 +35,7 @@ class AccountController extends APIController
       'created_at'      => Carbon::now()
      );
      $this->model = new Account();
-     $this->insertDB($dataAccount);
+     $this->insertDB($dataAccount, true);
      $accountId = $this->response['data'];
 
      if($accountId){
