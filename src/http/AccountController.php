@@ -94,14 +94,19 @@ class AccountController extends APIController
     }
 
     public function updateByVerification(Request $request){
+      if($this->checkAuthenticatedUser(true) == false){
+        return $this->response();
+      }
       $data = $request->all();
-      $this->model = new Account();
-      $this->updateDB($data);
+      $result = Account::where('id', '=', $data['id'])->update(array(
+        'status' => $data['status']
+      ));
+      $this->response['data'] = $result ? true : false;
       return $this->response();
     }
 
     public function requestReset(Request $request){
-      if($this->checkAuthenticatedUser() == false){
+      if($this->checkAuthenticatedUser(true) == false){
         return $this->response();
       }
       $data = $request->all();
@@ -115,20 +120,19 @@ class AccountController extends APIController
     }
 
     public function update(Request $request){
-      if($this->checkAuthenticatedUser() == false){
+      if($this->checkAuthenticatedUser(true) == false){
         return $this->response();
       }
       $data = $request->all();
       $result = Account::where('code', '=', $data['code'])->where('username', '=', $data['username'])->get();
       if(sizeof($result) > 0){
         $updateData = array(
-          'id'        => $result[0]['id'],
           'password'  => Hash::make($data['password'])
         );
-        $this->model = new Account();
-        $this->updateDB($updateData);
-        if($this->response['data'] == true){
-          app('App\Http\Controllers\EmailController')->changedPassword($updateData['id']);
+        $updateResult = Account::where('id', '=', $result[0]['id'])->update($updateData);
+        if($updateResult == true){
+          $this->response['data'] = true;
+          app('App\Http\Controllers\EmailController')->changedPassword($result[0]['id']);
           return $this->response();
         }else{
           return response()->json(array('data' => false));
