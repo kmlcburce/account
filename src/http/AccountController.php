@@ -218,6 +218,12 @@ class AccountController extends APIController
       return $this->response();
     }
 
+    public function updateAccountType(Request $request){ 
+      $data = $request->all();
+      $this->updateDB($data);
+      return $this->response();
+    }
+
     public function updateEmail(Request $request){
       if($this->checkAuthenticatedUser() == false){
         return $this->response();

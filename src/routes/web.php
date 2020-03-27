@@ -34,6 +34,7 @@ Route::post($route.'request_reset',  $controller."requestReset");
 Route::post($route.'update_password', $controller.'updatePassword');
 Route::post($route.'update_email', $controller.'updateEmail');
 Route::post($route.'update_type', $controller.'updateType');
+Route::post($route.'update_account_type', $controller.'updateAccountType');
 
 
 // Account Profile
