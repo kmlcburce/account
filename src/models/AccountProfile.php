@@ -9,4 +9,9 @@ class AccountProfile extends APIModel
 {
     protected $table = 'account_profiles';
     protected $fillable = ['account_id', 'url'];
+
+    public function getAccountIdAttribute($value){
+      return intval($value);
+    }
+
 }

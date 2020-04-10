@@ -13,7 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 class AccountController extends APIController
 {
-    function __construct(){  
+    function __construct(){
       $this->model = new Account();
       $this->validation = array(  
         "email" => "unique:accounts",
@@ -35,7 +35,7 @@ class AccountController extends APIController
       'created_at'      => Carbon::now()
      );
      $this->model = new Account();
-     $this->insertDB($dataAccount);
+     $this->insertDB($dataAccount, true);
      $accountId = $this->response['data'];
 
      if($accountId){
@@ -50,10 +50,8 @@ class AccountController extends APIController
             app('Increment\Account\Http\SubAccountController')->createByParams($accountId, $accountId, $status);
           }else{
             app('Increment\Account\Http\SubAccountController')->createByParams($request['account_id'], $accountId, $status);
+            app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
           }
-          
-          app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
-       }else{
           app('App\Http\Controllers\EmailController')->verification($accountId);
        }
      }
@@ -71,6 +69,8 @@ class AccountController extends APIController
       $billing->account_id = $accountId;
       $billing->created_at = Carbon::now();
       $billing->save();
+
+      app('App\Http\Controllers\NotificationSettingController')->insert($accountId);
     }
 
     public function generateCode(){
@@ -94,13 +94,21 @@ class AccountController extends APIController
     }
 
     public function updateByVerification(Request $request){
+      if($this->checkAuthenticatedUser(true) == false){
+        return $this->response();
+      }
       $data = $request->all();
-      $this->model = new Account();
-      $this->updateDB($data);
+      $result = Account::where('id', '=', $data['id'])->update(array(
+        'status' => $data['status']
+      ));
+      $this->response['data'] = $result ? true : false;
       return $this->response();
     }
 
     public function requestReset(Request $request){
+      if($this->checkAuthenticatedUser(true) == false){
+        return $this->response();
+      }
       $data = $request->all();
       $result = Account::where('email', '=', $data['email'])->get();
       if(sizeof($result) > 0){
@@ -112,17 +120,19 @@ class AccountController extends APIController
     }
 
     public function update(Request $request){
+      if($this->checkAuthenticatedUser(true) == false){
+        return $this->response();
+      }
       $data = $request->all();
       $result = Account::where('code', '=', $data['code'])->where('username', '=', $data['username'])->get();
       if(sizeof($result) > 0){
         $updateData = array(
-          'id'        => $result[0]['id'],
           'password'  => Hash::make($data['password'])
         );
-        $this->model = new Account();
-        $this->updateDB($updateData);
-        if($this->response['data'] == true){
-          dispatch(new Email($result[0], 'reset_password'));
+        $updateResult = Account::where('id', '=', $result[0]['id'])->update($updateData);
+        if($updateResult == true){
+          $this->response['data'] = true;
+          app('App\Http\Controllers\EmailController')->changedPassword($result[0]['id']);
           return $this->response();
         }else{
           return response()->json(array('data' => false));
@@ -150,7 +160,6 @@ class AccountController extends APIController
       $data = $request->all();
       $this->model = new Account();
       $result = $this->retrieveDB($data);
-
       if(sizeof($result) > 0){
         $i = 0;
         foreach ($result as $key) {
@@ -163,8 +172,36 @@ class AccountController extends APIController
       }
     }
 
+
+    public function retrieveAccounts(Request $request){
+      $data = $request->all();
+      $this->model = new Account();
+      $result = $this->retrieveDB($data);
+      if(!$result){
+        return $this->response();
+      }
+      if(sizeof($result) > 0){
+        $i = 0;
+        foreach ($result as $key) {
+          $this->response['data'][$i] = $this->retrieveAppDetails($result[$i], $result[$i]['id']);
+          $this->response['data'][$i]['account'] = $this->retrieveAccountDetails($result[$i]['id']);
+          $this->response['data'][$i]['partner_locations'] = null;
+          if(env('PARTNER_LOCATIONS') == true){
+            $this->response['data'][$i]['partner_locations'] = app(
+              'App\Http\Controllers\InvestorLocationController')->getByParams('account_id', $result[$i]['id']);
+          }
+          $i++;
+        }
+      }
+      return $this->response();
+    }
+
     public function retrieveById($accountId){
       return Account::where('id', '=', $accountId)->get();
+    }
+
+    public function retrieveByEmailAndCode($email, $code){
+      return Account::where('code', '=', $code)->where('email', '=', $email)->get();
     }
 
     public function updatePassword(Request $request){ 
@@ -181,7 +218,16 @@ class AccountController extends APIController
       return $this->response();
     }
 
+    public function updateAccountType(Request $request){ 
+      $data = $request->all();
+      $this->updateDB($data);
+      return $this->response();
+    }
+
     public function updateEmail(Request $request){
+      if($this->checkAuthenticatedUser() == false){
+        return $this->response();
+      }
       $request = $request->all();
       $result = Account::where('email', '=', $request['email'])->get();
       $text = array('email' => $request['email']);

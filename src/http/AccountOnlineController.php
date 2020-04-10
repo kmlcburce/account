@@ -21,7 +21,7 @@ class AccountOnlineController extends APIController
         'id' => $data['id'],
         'status' => $data['status']
       );
-      $this->updatDB($data);
+      $this->updateDB($data);
       return $this->response();
     }else{
       $this->model = new AccountOnline();

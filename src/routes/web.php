@@ -23,6 +23,7 @@ $route = env('PACKAGE_ROUTE', '').'/accounts/';
 $controller = 'Increment\Account\Http\AccountController@';
 Route::post($route.'create', $controller."create");
 Route::post($route.'retrieve', $controller."retrieve");
+Route::post($route.'retrieve_accounts', $controller.'retrieveAccounts');
 Route::post($route.'update', $controller."update");
 Route::post($route.'update_verification', $controller."updateByVerification");
 Route::post($route.'delete', $controller."delete");
@@ -33,6 +34,7 @@ Route::post($route.'request_reset',  $controller."requestReset");
 Route::post($route.'update_password', $controller.'updatePassword');
 Route::post($route.'update_email', $controller.'updateEmail');
 Route::post($route.'update_type', $controller.'updateType');
+Route::post($route.'update_account_type', $controller.'updateAccountType');
 
 
 // Account Profile

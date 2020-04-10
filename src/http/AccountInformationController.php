@@ -4,13 +4,15 @@ namespace Increment\Account\Http;
 use Illuminate\Http\Request;
 use App\Http\Controllers\APIController;
 use Increment\Account\Models\AccountInformation;
+use Carbon\Carbon;
 class AccountInformationController extends APIController
 {
-  function __construct(){  
-      $this->model = new AccountInformation();
-      $this->notRequired = array(
-        'sex', 'birth_date', 'cellular_number', 'address'
-      );
+  function __construct(){
+    $this->localization();
+    $this->model = new AccountInformation();
+    $this->notRequired = array(
+      'sex', 'birth_date', 'cellular_number', 'address'
+    );
   }
 
   public function update(Request $request){
@@ -37,6 +39,9 @@ class AccountInformationController extends APIController
 
   public function getAccountInformation($accountId){
     $result = AccountInformation::where('account_id', '=', $accountId)->get();
+    if(sizeof($result) > 0){
+      $result[0]['birth_date_human'] = ($result[0]['birth_date'] != null && $result[0]['birth_date'] != '') ?Carbon::createFromFormat('Y-m-d', $result[0]['birth_date'])->copy()->tz($this->response['timezone'])->format('F j, Y') : null;
+    }
     return (sizeof($result) > 0) ? $result[0] : null;
   }
 }

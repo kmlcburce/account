@@ -9,4 +9,9 @@ class AccountSetType extends APIModel
 {
     protected $table = 'account_set_types';
     protected $fillable = ['account_id'];
+
+    public function getAccountIdAttribute($value){
+      return intval($value);
+    }
+
 }
