@@ -160,14 +160,13 @@ class AccountController extends APIController
       $data = $request->all();
       $this->model = new Account();
       $result = $this->retrieveDB($data);
-      $this->response['size'] = Account::where('deleted_at', '!', null)->count();
       if(sizeof($result) > 0){
         $i = 0;
         foreach ($result as $key) {
           $result[$i] = $this->retrieveDetailsOnLogin($result[$i]);
           $i++;
         }
-        return response()->json(array('data' => $result, 'size' => $this->response['size']));
+        return response()->json(array('data' => $result));
       }else{
         return $this->response();
       }
@@ -194,6 +193,7 @@ class AccountController extends APIController
           $i++;
         }
       }
+      $this->response['size'] = Account::where('deleted_at', '=', null)->count();
       return $this->response();
     }
 
