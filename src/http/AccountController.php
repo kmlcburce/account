@@ -208,6 +208,12 @@ class AccountController extends APIController
       $data = $request->all();
       $data['password'] = Hash::make($data['password']);
       $this->updateDB($data);
+      if(env('LOGIN_ATTEMPT_LIMIT') != null){
+        // reset here
+        app('Increment\Account\Http\LoginAttemptController')->reset(array(
+          'account_id'  => $data['id']
+        ));
+      }
       return $this->response();
     }
 
