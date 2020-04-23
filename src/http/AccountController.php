@@ -46,9 +46,10 @@ class AccountController extends APIController
        }
        if(env('SUB_ACCOUNT') == true){
           $status = $request['status'];
-          if($status === 'ADMIN'){
+          if($status == 'ADMIN'){
             app('Increment\Account\Http\SubAccountController')->createByParams($accountId, $accountId, $status);
-          }else{
+          }
+          if($status != 'ADMIN'){
             app('Increment\Account\Http\SubAccountController')->createByParams($request['account_id'], $accountId, $status);
             app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
           }
