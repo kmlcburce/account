@@ -28,6 +28,6 @@ class CreateLoginAttemptsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('account_profiles');
+        Schema::dropIfExists('login_attempts');
     }
 }
