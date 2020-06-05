@@ -33,6 +33,7 @@ class SubAccountController extends APIController
         $i = 0;
         foreach ($result as $key) {
           $this->response['data'][$i]['account'] = $this->retrieveAccountDetails($result[$i]['member']);
+          $this->response['data'][$i]['account_creator'] = $this->retrieveAccountDetails($result[$i]['account_id']);
           $i++;
         }
       }
