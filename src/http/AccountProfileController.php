@@ -18,6 +18,6 @@ class AccountProfileController extends APIController
 
   public function getAllowedData($accountId){
     $result = AccountProfile::where('id', '=', $accountId)->get(['url']);
-    return sizeof(sizeof($result) > 0) ? $result[0] : null;
+    return sizeof($result) > 0 ? $result[0] : null;
   }
 }
