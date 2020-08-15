@@ -44,4 +44,9 @@ class AccountInformationController extends APIController
     }
     return (sizeof($result) > 0) ? $result[0] : null;
   }
+
+  public function getAllowedData($accountId){
+    $result = AccountInformation::where('id', '=', $accountId)->get(['first_name', 'last_name', 'middle_name', 'sex']);
+    return sizeof(sizeof($result) > 0) ? $result[0] : null;
+  }
 }

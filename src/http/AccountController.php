@@ -208,6 +208,11 @@ class AccountController extends APIController
       return sizeof(sizeof($result) > 0) ? $result[0] : null;
     }
 
+    public function getAllowedData($accountId){
+      $result = Account::where('id', '=', $accountId)->get(['username', 'email', 'account_type', 'code']);
+      return sizeof(sizeof($result) > 0) ? $result[0] : null;
+    }
+
     public function retrieveByEmailAndCode($email, $code){
       return Account::where('code', '=', $code)->where('email', '=', $email)->get();
     }

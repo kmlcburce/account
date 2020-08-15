@@ -15,4 +15,9 @@ class AccountProfileController extends APIController
     $result = AccountProfile::where('account_id', '=', $accountId)->orderBy('created_at', 'desc')->get();
     return (sizeof($result) > 0) ? $result[0] : null;
   }
+
+  public function getAllowedData($accountId){
+    $result = AccountProfile::where('id', '=', $accountId)->get(['url']);
+    return sizeof(sizeof($result) > 0) ? $result[0] : null;
+  }
 }
