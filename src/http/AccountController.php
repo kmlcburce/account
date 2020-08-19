@@ -282,4 +282,11 @@ class AccountController extends APIController
         return true;
     }
 
+    public function accountTypeSize(Request $request){
+      $count = \DB::table('accounts')
+                          ->select('account_type', \DB::raw('count(account_type) as account_count'))
+                          ->groupBy('account_type')
+                          ->get();
+      return response()->json(array('data' => $count));
+    }
 }
