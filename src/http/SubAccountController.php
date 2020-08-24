@@ -37,7 +37,10 @@ class SubAccountController extends APIController
           $i++;
         }
       }
-      $this->response['size'] = SubAccount::where($data['condition'][0]['column'], $data['condition'][0]['like'], $data['condition'][0]['value'])->count();
+      if(sizeof($data['condition']) > 0){
+        $this->response['size'] = SubAccount::where($data['condition'][0]['column'], $data['condition'][0]['like'], $data['condition'][0]['value'])->count();
+      }
+      
       return $this->response();
     }
 
