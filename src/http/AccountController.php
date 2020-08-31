@@ -218,7 +218,7 @@ class AccountController extends APIController
     }
 
     public function retrieveByEmail($email){
-      return Account::where('email', '=', $email)->get();
+      $result = Account::where('email', '=', $email)->get();
       return sizeof($result) > 0 ? $result[0] : null;
     }
 
