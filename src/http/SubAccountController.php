@@ -7,6 +7,7 @@ use App\Http\Controllers\APIController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use DB;
 class SubAccountController extends APIController
 {
     function __construct(){
@@ -42,6 +43,49 @@ class SubAccountController extends APIController
       }
       
       return $this->response();
+    }
+
+    public function retrieveAll(Request $request) {
+      $data = $request->all();
+      $con = $data['condition'];
+      $results = array();
+      $name = null;
+      if($con[0]['value'] != '%') {
+        $name = DB::table('sub_accounts as T1')
+          ->join('accounts as T2', 'T1.member', '=', 'T2.id')
+          ->Where($con[1]['column'], $con[1]['clause'], $con[1]['value'])
+          ->Where($con[0]['column'], $con[0]['clause'], $con[0]['value'])
+          ->WhereNull('T1.deleted_at')
+          ->select('T2.username', 'T2.email', 'T1.status', 'T1.account_id', 'T1.id', 'T1.member', 'T1.created_at', 'T1.updated_at', 'T1.deleted_at')
+          ->skip($data['offset'])
+          ->take($data['limit'])
+          ->orderBy($con[0]['column'], $data['sort'][$con[0]['column']])
+          ->get();
+      } else {
+        $name = DB::table('sub_accounts as T1')
+        ->join('accounts as T2', 'T1.member', '=', 'T2.id')
+        ->Where($con[1]['column'], $con[1]['clause'], $con[1]['value'])
+        ->WhereNull('T1.deleted_at')
+        ->select('T2.username', 'T2.email', 'T1.status', 'T1.account_id', 'T1.id', 'T1.member', 'T1.created_at', 'T1.updated_at', 'T1.deleted_at')
+        ->skip($data['offset'])
+        ->take($data['limit'])
+        ->orderBy($con[0]['column'], $data['sort'][$con[0]['column']])
+        ->get();
+      }
+      $i = 0;
+      foreach ($name as $key) {
+        $results[$i]['updated_at'] = $key->updated_at;
+        $results[$i]['created_at'] = $key->created_at;
+        $results[$i]['deleted_at'] = $key->deleted_at;
+        $results[$i]['status'] = $key->status;
+        $results[$i]['id'] = $key->id;
+        $results[$i]['account_id'] = $key->account_id;
+        $results[$i]['member'] = $key->member;
+        $results[$i]['account'] = $this->retrieveAccountDetails($key->member);
+        $results[$i]['account_creator'] = $this->retrieveAccountDetails($key->account_id);
+        $i++;
+      }
+      return $results;
     }
 
     public function retrieveByParams($column, $value){

@@ -60,7 +60,7 @@ Route::get($route.'test', $controller."test");
 $route = env('PACKAGE_ROUTE', '').'/sub_accounts/';
 $controller = 'Increment\Account\Http\SubAccountController@';
 Route::post($route.'create', $controller."create");
-Route::post($route.'retrieve', $controller."retrieve");
+Route::post($route.'retrieve', $controller."retrieveAll");
 Route::post($route.'update', $controller."update");
 Route::post($route.'delete', $controller."delete");
 Route::get($route.'test', $controller."test");
