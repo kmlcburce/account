@@ -85,7 +85,9 @@ class SubAccountController extends APIController
         $results[$i]['account_creator'] = $this->retrieveAccountDetails($key->account_id);
         $i++;
       }
-      return $results;
+
+      $this->response['data'] = $results;
+      return $this->response();
     }
 
     public function retrieveByParams($column, $value){
