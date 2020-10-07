@@ -86,6 +86,7 @@ class SubAccountController extends APIController
         $i++;
       }
 
+      $this->response['size'] = count($results);
       $this->response['data'] = $results;
       return $this->response();
     }
