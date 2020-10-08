@@ -61,6 +61,14 @@ class SubAccountController extends APIController
           ->take($data['limit'])
           ->orderBy($con[0]['column'], $data['sort'][$con[0]['column']])
           ->get();
+
+          $this->response['size'] =DB::table('sub_accounts as T1')
+            ->join('accounts as T2', 'T1.member', '=', 'T2.id')
+            ->Where($con[1]['column'], $con[1]['clause'], $con[1]['value'])
+            ->Where($con[0]['column'], $con[0]['clause'], $con[0]['value'])
+            ->WhereNull('T1.deleted_at')
+            ->count();
+
       } else {
         $name = DB::table('sub_accounts as T1')
         ->join('accounts as T2', 'T1.member', '=', 'T2.id')
@@ -71,6 +79,13 @@ class SubAccountController extends APIController
         ->take($data['limit'])
         ->orderBy($con[0]['column'], $data['sort'][$con[0]['column']])
         ->get();
+
+        $this->response['size'] = DB::table('sub_accounts as T1')
+        ->join('accounts as T2', 'T1.member', '=', 'T2.id')
+        ->Where($con[1]['column'], $con[1]['clause'], $con[1]['value'])
+        ->WhereNull('T1.deleted_at')
+        ->count();
+
       }
       $i = 0;
       foreach ($name as $key) {
@@ -85,9 +100,9 @@ class SubAccountController extends APIController
         $results[$i]['account_creator'] = $this->retrieveAccountDetails($key->account_id);
         $i++;
       }
-
-      $this->response['size'] = count($results);
+      
       $this->response['data'] = $results;
+
       return $this->response();
     }
 
