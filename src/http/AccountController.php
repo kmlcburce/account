@@ -195,7 +195,16 @@ class AccountController extends APIController
           $i++;
         }
       }
-      $this->response['size'] = Account::where('deleted_at', '=', null)->count();
+      if(isset($data['condition'])){
+        $condition = $data['condition'];
+        if(sizeof($condition) == 1){
+          $con = $condition[0];
+          $this->response['size'] = Account::where('deleted_at', '=', null)->where($con['column'], $con['clause'], $con['value'])->count();
+        }
+      }else{
+        $this->response['size'] = Account::where('deleted_at', '=', null)->count();
+      }
+      
       return $this->response();
     }
 
