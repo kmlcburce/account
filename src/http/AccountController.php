@@ -10,9 +10,15 @@ use App\Http\Controllers\APIController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 class AccountController extends APIController
 {
+
+  public $educationClass = 'App\Http\Controllers\EducationController';
+  public $ratingClass = 'Increment\Common\Rating\Http\RatingController';
+
+
     function __construct(){
       $this->model = new Account();
       $this->validation = array(  
@@ -172,6 +178,22 @@ class AccountController extends APIController
       }else{
         return $this->response();
       }
+    }
+
+    public function retrieveAccountProfile(Request $request){
+      $data = $request->all();
+      $result = DB::table('accounts')
+        ->where('id', '=', $data['account_id'])
+        ->get();
+      if(sizeof($result) > 0){
+        $i = 0;
+        foreach ($result as $key) {
+          $this->response['data'][$i]['account'] =  $this->retrieveAccountDetails($key->id);
+          $this->response['data'][$i]['rating'] = app($this->ratingClass)->getRatingByPayload('profile', $key->id);
+          $this->response['data'][$i]['educations'] = app($this->educationClass)->getByParams('account_id', $key->id);
+        }
+      }
+      return $this->response();
     }
 
 
