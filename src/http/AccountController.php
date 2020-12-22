@@ -15,10 +15,6 @@ use Illuminate\Support\Facades\Validator;
 class AccountController extends APIController
 {
 
-  public $educationClass = 'App\Http\Controllers\EducationController';
-  public $ratingClass = 'Increment\Common\Rating\Http\RatingController';
-
-
     function __construct(){
       $this->model = new Account();
       $this->validation = array(  
