@@ -182,18 +182,14 @@ class AccountController extends APIController
 
     public function retrieveAccountProfile(Request $request){
       $data = $request->all();
-      $result = DB::table('accounts')
-        ->where('id', '=', $data['account_id'])
-        ->get();
+      $result = Account::where('id', '=', $data['account_id'])->get();
       if(sizeof($result) > 0){
         $i = 0;
         foreach ($result as $key) {
-          $this->response['data'][$i]['account'] =  $this->retrieveAccountDetails($key->id);
-          $this->response['data'][$i]['rating'] = app($this->ratingClass)->getRatingByPayload('profile', $key->id);
-          $this->response['data'][$i]['educations'] = app($this->educationClass)->getByParams('account_id', $key->id);
+          $result[$i] =  $this->retrieveProfileDetails($key->id);
         }
       }
-      return $this->response();
+      return response()->json(array('data' => $result));
     }
 
 
