@@ -10,9 +10,11 @@ use App\Http\Controllers\APIController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 class AccountController extends APIController
 {
+
     function __construct(){
       $this->model = new Account();
       $this->validation = array(  
@@ -172,6 +174,18 @@ class AccountController extends APIController
       }else{
         return $this->response();
       }
+    }
+
+    public function retrieveAccountProfile(Request $request){
+      $data = $request->all();
+      $result = Account::where('id', '=', $data['account_id'])->get();
+      if(sizeof($result) > 0){
+        $i = 0;
+        foreach ($result as $key) {
+          $result[$i] =  $this->retrieveProfileDetails($key->id);
+        }
+      }
+      return response()->json(array('data' => $result));
     }
 
 
