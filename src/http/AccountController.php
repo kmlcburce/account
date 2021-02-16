@@ -122,6 +122,7 @@ class AccountController extends APIController
         return response()->json(array('data' => false));
       }
     }
+    
 
     public function update(Request $request){
       if($this->checkAuthenticatedUser(true) == false){
@@ -326,5 +327,14 @@ class AccountController extends APIController
                           ->groupBy('account_type')
                           ->get();
       return response()->json(array('data' => $count));
+    }
+
+    public function updateLastLogin(Request $request){
+      $data = $request->all();
+      $result = Account::where('id', '=', $data['account_id'])->update(array(
+        'updated_at' => Carbon::now()
+      ));
+      $this->response['data'] = $result;
+      return $this->response();
     }
 }

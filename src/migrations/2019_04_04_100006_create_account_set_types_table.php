@@ -27,6 +27,6 @@ class CreateAccountSetTypesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('account_profiles');
+        Schema::dropIfExists('account_set_types');
     }
 }

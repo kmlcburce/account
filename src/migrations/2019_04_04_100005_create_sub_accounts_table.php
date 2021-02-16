@@ -29,6 +29,6 @@ class CreateSubAccountsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('account_profiles');
+        Schema::dropIfExists('sub_accounts');
     }
 }
