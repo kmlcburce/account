@@ -37,6 +37,7 @@ Route::post($route.'update_email', $controller.'updateEmail');
 Route::post($route.'update_type', $controller.'updateType');
 Route::post($route.'update_account_type', $controller.'updateAccountType');
 Route::post($route.'accounts_count', $controller.'accountTypeSize');
+Route::post($route.'update_last_log_in', $controller.'updateLastLogin');
 
 // Account Profile
 $route = env('PACKAGE_ROUTE', '').'/account_profiles/';
