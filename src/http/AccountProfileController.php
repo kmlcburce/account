@@ -20,7 +20,7 @@ class AccountProfileController extends APIController
     $result = AccountProfile::where('id', '=', $accountId)->get(['url']);
     return sizeof($result) > 0 ? $result[0] : null;
   }
-  
+
   public function getByParamsWithColumns($accountId, $columns){
     $result = AccountProfile::where('account_id', '=', $accountId)->get($columns);
     return (sizeof($result) > 0) ? $result[0] : null;

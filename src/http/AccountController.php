@@ -345,7 +345,7 @@ class AccountController extends APIController
 
     public function getAccountIdByParamsWithColumns($accountId, $columns){
       $result = Account::where('id', '=', $accountId)->get($columns);
-      return (sizeof($result) > 0) ? $result[0]['id'] : null;
+      return (sizeof($result) > 0) ? $result[0] : null;
     }
 
 }
