@@ -7,6 +7,9 @@ use Increment\Account\Models\AccountInformation;
 use Carbon\Carbon;
 class AccountInformationController extends APIController
 {
+
+  public $imageClass = 'Increment\Common\Image\Http\ImageController';
+
   function __construct(){
     $this->localization();
     $this->model = new AccountInformation();
@@ -26,6 +29,18 @@ class AccountInformationController extends APIController
       $this->insertDB($data);
       return $this->response();
     }
+  }
+
+  public function retrieveAccountInfo(Request $request){
+    $data = $request->all();
+    $result = AccountInformation::where('account_id', '=', $data['account_id'])->get();
+    $i = 0;
+    foreach ($result as $key) {
+      $result[$i]['profile'] = app($this->imageClass)->retrieveByAccountId($data['account_id']);
+    }
+    $this->response['data'] = $result;
+
+    return $this->response();
   }
 
   public function checkIfExist($accountId){
