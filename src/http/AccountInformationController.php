@@ -33,7 +33,7 @@ class AccountInformationController extends APIController
 
   public function retrieveAccountInfo(Request $request){
     $data = $request->all();
-    $result = AccountInformation::where('account_id', '=', $data['account_id'])->get();
+    $result = AccountInformation::where($data['condition'][0]['column'], $data['condition'][0]['clause'], $data['condition'][0]['value'])->get();
     $i = 0;
     foreach ($result as $key) {
       $result[$i]['profile'] = app($this->imageClass)->retrieveByAccountId($data['account_id']);
