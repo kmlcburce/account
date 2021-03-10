@@ -8,8 +8,6 @@ use Carbon\Carbon;
 class AccountInformationController extends APIController
 {
 
-  public $imageClass = 'Increment\Common\Image\Http\ImageController';
-
   function __construct(){
     $this->localization();
     $this->model = new AccountInformation();
@@ -36,7 +34,7 @@ class AccountInformationController extends APIController
     $result = AccountInformation::where($data['condition'][0]['column'], $data['condition'][0]['clause'], $data['condition'][0]['value'])->get();
     $i = 0;
     foreach ($result as $key) {
-      $result[$i]['profile'] = app($this->imageClass)->retrieveByAccountId($data['account_id']);
+      $result[$i]['profile'] = app('Increment\Account\Http\AccountProfileController')->getByParamsWithColumns($data['condition'][0]['value'], ['url']);
     }
     $this->response['data'] = $result;
 
