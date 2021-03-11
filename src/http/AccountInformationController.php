@@ -34,7 +34,7 @@ class AccountInformationController extends APIController
     $result = AccountInformation::where($data['condition'][0]['column'], $data['condition'][0]['clause'], $data['condition'][0]['value'])->get();
     $i = 0;
     foreach ($result as $key) {
-      $result[$i]['profile'] = app('Increment\Account\Http\AccountProfileController')->getByParamsWithColumns($data['condition'][0]['value'], ['url']);
+      $result[$i]['profile'] = app('Increment\Account\Http\AccountProfileController')->getByParamsWithColumns($data['condition'][0]['value'], ['url', 'id']);
     }
     $this->response['data'] = $result;
 
