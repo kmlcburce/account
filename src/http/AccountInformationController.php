@@ -38,6 +38,7 @@ class AccountInformationController extends APIController
       $result[$i]['profile'] = app('Increment\Account\Http\AccountProfileController')->getByParamsWithColumns($data['condition'][0]['value'], ['url', 'id']);
       $result[$i]['username'] = $account['username'];
       $result[$i]['status'] = $account['status'];
+      $result[$i]['rating'] = app('Increment\Common\Rating\Http\RatingController')->getRatingByPayload('account', $result[$i]['account_id']);
     }
     $this->response['data'] = $result;
 
