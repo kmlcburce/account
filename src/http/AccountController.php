@@ -202,6 +202,7 @@ class AccountController extends APIController
         foreach ($result as $key) {
           $this->response['data'][$i] = $this->retrieveAppDetails($result[$i], $result[$i]['id']);
           $this->response['data'][$i]['account'] = $this->retrieveAccountDetails($result[$i]['id']);
+          $this->response['data'][$i]['rating'] = app('Increment\Common\Rating\Http\RatingController')->getRatingByPayload('account', $result[$i]['account_id']);
           $this->response['data'][$i]['partner_locations'] = null;
           if(env('PARTNER_LOCATIONS') == true){
             $this->response['data'][$i]['partner_locations'] = app(
