@@ -192,9 +192,16 @@ class AccountController extends APIController
 
     public function retrieveAccounts(Request $request){
       $data = $request->all();
-      $this->model = new Account();
-      $result = $this->retrieveDB($data);
+      if(isset($data['accountType'])){
+        $con = $data['condition'];
+        $result = Account::where('account_type', '=', $data['accountType'])->where($con[0]['column'], $con[0]['clause'], $con[0]['value'])->limit($data['limit'])
+          ->offset($data['offset'])->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])->get();
+      }else{
+        $this->model = new Account();
+        $result = $this->retrieveDB($data);
+      }
       if(!$result){
+        $this->response['data'] = [];
         return $this->response();
       }
       if(sizeof($result) > 0){
@@ -230,7 +237,7 @@ class AccountController extends APIController
       }else{
         $this->response['size'] = Account::where('deleted_at', '=', null)->count();
       }
-      
+      $this->response['data'] = $result;
       return $this->response();
     }
 
