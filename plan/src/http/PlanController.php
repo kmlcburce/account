@@ -31,4 +31,25 @@ class PlanController extends APIController
       return $code;
     }
   }
+
+  public function retrieve(Request $request){
+    $data = $request->all();
+    $this->model = new Plan();
+    $this->retrieveDB($data);
+    $result = $this->response['data'];
+
+    if(sizeof($result) > 0){
+      $i = 0;
+      foreach ($result as $key) {
+        $this->response['data'][$i]['account'] = $this->retrieveAccountDetails($result[$i]['account_id']);
+        $this->response['data'][$i]['merchant'] = null;
+        if($result[$i]['merchant_id']){
+          $this->response['data'][$i]['merchant'] = app('Increment\Imarket\Merchant\Http\MerchantController')->getByParams('id', $result[$i]['merchant_id']);
+        }
+
+        $i++;
+      }
+    }
+    return $this->response();
+  }
 }
