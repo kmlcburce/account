@@ -52,4 +52,9 @@ class PlanController extends APIController
     }
     return $this->response();
   }
+
+  public function getByParams($column, $value){
+    $result = Plan::where($column, '=', $value)->orderBy('created_at', 'desc')->limit(1)->get();
+    return sizeof($result) > 0 ? $result[0] : null;
+  }
 }
