@@ -7,6 +7,7 @@ use App\Http\Controllers\APIController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Increment\Imarket\Location\Models\Location;
 class PlanController extends APIController
 {
   function __construct(){
@@ -19,6 +20,12 @@ class PlanController extends APIController
     $this->model = new Plan();
     $data['code'] = $this->generateCode();
     $this->insertDB($data);
+    if(isset($data['location']) && $data['location'] != null){
+      Location::where('id', '=', $data['location']['id'])->update(array(
+        'code' => 'pending',
+        'updated_at' => Carbon::now()
+      ));
+    }
     return $this->response();
   }
 
@@ -43,6 +50,7 @@ class PlanController extends APIController
       foreach ($result as $key) {
         $this->response['data'][$i]['account'] = $this->retrieveAccountDetails($result[$i]['account_id']);
         $this->response['data'][$i]['merchant'] = null;
+        $this->response['data'][$i]['location'] = app('Increment\Imarket\Location\Http\LocationController')->getByParamsWithCode('account_id', $result[$i]['account_id']);
         if($result[$i]['merchant_id']){
           $this->response['data'][$i]['merchant'] = app('Increment\Imarket\Merchant\Http\MerchantController')->getByParams('id', $result[$i]['merchant_id']);
         }
