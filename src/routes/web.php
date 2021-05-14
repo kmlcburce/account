@@ -39,6 +39,7 @@ Route::post($route.'update_type', $controller.'updateType');
 Route::post($route.'update_account_type', $controller.'updateAccountType');
 Route::post($route.'accounts_count', $controller.'accountTypeSize');
 Route::post($route.'update_last_log_in', $controller.'updateLastLogin');
+Route::post($route.'retrieve_type_size', $controller.'getAccountTypeSize');
 
 // Account Profile
 $route = env('PACKAGE_ROUTE', '').'/account_profiles/';

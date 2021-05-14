@@ -106,6 +106,22 @@ class AccountController extends APIController
         'status' => $data['status']
       ));
       $this->response['data'] = $result ? true : false;
+      if($this->response['data'] == true){
+        if($data['status'] == 'ACCOUNT_VERIFIED'){
+          $details = 'your account is alread verified. You can now start creating request but if you want to earn while using Payhiram, Be our Partner. What are you waiting for? Apply Now!';
+        }else if($data['status'] == 'BASIC_VERIFIED'){
+          $details = 'you are now an official Payhiram partner. Enjoy earning everyday with the maximum amount of 10,000 pesos. We are happy and excited to be part of your source of income.';
+        }else if($data['status'] == 'STANDARD_VERIFIED'){
+          $details = 'you are now an official Payhiram partner. Enjoy earning everyday with the maximum amount of 50,000 pesos. We are happy and excited to be part of your source of income.';
+        }else if($data['status'] == 'BUSINESS_VERIFIED'){
+          $details = 'you are now an official Payhiram partner. Enjoy earning everyday with the maximum amount of 100,000 pesos. We are happy and excited to be part of your source of income.';
+        }else if($data['status'] == 'ENTERPRISE_VERIFIED'){
+          $details = 'you are now an official Payhiram partner. Enjoy earning everyday with the maximum amount of 500,000 pesos. We are happy and excited to be part of your source of income.';
+        }else if($data['status'] == 'VERIFIED'){
+          $details = 'your email has been verified. To complete your registration, we need a little more information including the completion of your profile details.';
+        }
+        app('App\Http\Controllers\EmailController')->verification_status($data['id'], $details);
+      }
       return $this->response();
     }
 
@@ -356,4 +372,29 @@ class AccountController extends APIController
       return (sizeof($result) > 0) ? $result[0] : null;
     }
 
+    public function getAccountTypeSize(Request $request){
+    $data = $request->all();
+    if($data['accountType'] == 'USER' && ($data['status'] == 'EMAIL_VERIFIED' || $data['status'] == 'NOT_VERIFIED')){
+      $count = DB::table('accounts')
+        ->select('*')
+        ->where('account_type', '=', $data['accountType'])
+        ->where(function($query){
+          $query->where('status', '=', 'EMAIL_VERIFIED')
+          ->orWhere('status', '=', 'NOT_VERIFIED');
+        })
+        ->get();
+    }else if($data['accountType'] == 'USER' && $data['status'] == 'ACCOUNT_VERIFIED'){
+      $count = DB::table('accounts')
+        ->select('*')
+        ->where('account_type', '=', $data['accountType'])
+        ->where('status', '=', 'ACCOUNT_VERIFIED')
+        ->get();
+      }else{
+        $count = DB::table('accounts')
+          ->select('*')
+          ->where('account_type', '=', $data['accountType'])
+          ->get();
+    }
+      return response()->json(array('data' => sizeOf($count)));
+    }
 }
