@@ -398,4 +398,17 @@ class AccountController extends APIController
       return response()->json(array('data' => sizeOf($count)));
     }
 
+    public function getAccountPending(Request $request){
+      $data = $request->all();
+      if($data['status'] == 'EMAIL_VERIFIED'){
+        $ret = DB::table('accounts')
+          ->select('*')
+          ->where('status', '=', 'EMAIL_VERIFIED')
+          ->orderBy('created_at', 'desc')
+          ->limit($data['limit'])
+          ->get();
+      }
+      return response()->json(array('data' => $ret));
+    }
+
 }
