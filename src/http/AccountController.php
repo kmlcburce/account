@@ -374,14 +374,9 @@ class AccountController extends APIController
 
     public function getAccountTypeSize(Request $request){
     $data = $request->all();
-    if($data['accountType'] == 'USER' && ($data['status'] == 'EMAIL_VERIFIED' || $data['status'] == 'NOT_VERIFIED')){
+    if($data['accountType'] == 'USER'){
       $count = DB::table('accounts')
         ->select('*')
-        ->where('account_type', '=', $data['accountType'])
-        ->where(function($query){
-          $query->where('status', '=', 'EMAIL_VERIFIED')
-          ->orWhere('status', '=', 'NOT_VERIFIED');
-        })
         ->get();
     }else if($data['accountType'] == 'USER' && $data['status'] == 'ACCOUNT_VERIFIED'){
       $count = DB::table('accounts')
@@ -389,11 +384,11 @@ class AccountController extends APIController
         ->where('account_type', '=', $data['accountType'])
         ->where('status', '=', 'ACCOUNT_VERIFIED')
         ->get();
-      }else{
-        $count = DB::table('accounts')
-          ->select('*')
-          ->where('account_type', '=', $data['accountType'])
-          ->get();
+    }else{
+      $count = DB::table('accounts')
+        ->select('*')
+        ->where('account_type', '=', $data['accountType'])
+        ->get();
     }
       return response()->json(array('data' => sizeOf($count)));
     }
