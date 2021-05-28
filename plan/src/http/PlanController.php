@@ -65,7 +65,7 @@ class PlanController extends APIController
     return sizeof($result) > 0 ? $result[0] : null;
   }
 
-  public function getByParamsScope($column = 'account_id', $value = 4){
+  public function getByParamsScope($column, $value){
     $result = $this->response['data'];
     $result = Plan::where($column, '=', $value)->orderBy('created_at', 'desc')->limit(1)->get();
     if(sizeof($result) > 0){
