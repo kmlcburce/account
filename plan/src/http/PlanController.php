@@ -54,7 +54,6 @@ class PlanController extends APIController
         if($result[$i]['merchant_id']){
           $this->response['data'][$i]['merchant'] = app('Increment\Imarket\Merchant\Http\MerchantController')->getByParams('id', $result[$i]['merchant_id']);
         }
-
         $i++;
       }
     }
@@ -64,5 +63,19 @@ class PlanController extends APIController
   public function getByParams($column, $value){
     $result = Plan::where($column, '=', $value)->orderBy('created_at', 'desc')->limit(1)->get();
     return sizeof($result) > 0 ? $result[0] : null;
+  }
+
+  public function getByParamsScope($column, $value){
+    $result = $this->response['data'];
+    $result = Plan::where($column, '=', $value)->orderBy('created_at', 'desc')->limit(1)->get();
+    if(sizeof($result) > 0){
+      $i = 0;
+      foreach ($result as $key) {
+        $this->response['data'][$i]['plans'] = Plan::where($column, '=', $value)->orderBy('created_at', 'desc')->limit(1)->get();
+        $this->response['data'][$i]['scope'] = app('Increment\Imarket\Location\Http\LocationController')->getCodeByLocalityAndCountry(app('Increment\Imarket\Location\Http\LocationController')->getByParamsWithCodeScope($column, $value)['id']);
+        $i++;
+      }
+    }
+    return $this->response();
   }
 }
