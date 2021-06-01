@@ -21,6 +21,9 @@ class AccountController extends APIController
         "email" => "unique:accounts",
         "username"  => "unique:accounts"
       );
+      $this->notRequired = array(
+        'token'
+      );
     }
 
     public function create(Request $request){
