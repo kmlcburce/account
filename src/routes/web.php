@@ -41,6 +41,7 @@ Route::post($route.'accounts_count', $controller.'accountTypeSize');
 Route::post($route.'update_last_log_in', $controller.'updateLastLogin');
 Route::post($route.'retrieve_type_size', $controller.'getAccountTypeSize');
 Route::post($route.'retrieve_pending_verified', $controller.'getAccountPending');
+Route::post($route.'social_login', $controller.'updateTokenByEmail');
 
 // Account Profile
 $route = env('PACKAGE_ROUTE', '').'/account_profiles/';
