@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use phpDocumentor\Reflection\Types\Null_;
+
 class AccountController extends APIController
 {
 
@@ -39,8 +41,12 @@ class AccountController extends APIController
       'email'           => $request['email'],
       'username'        => $request['username'],
       'account_type'    => $request['account_type'],
+      'token'           => isset($request['token']) ? $request['token'] : null,
       'created_at'      => Carbon::now()
      );
+     if(isset($request['token'])){
+       $dataAccount['token'] = $request['token'];
+     }
      $this->model = new Account();
      $this->insertDB($dataAccount, true);
      $accountId = $this->response['data'];
@@ -420,6 +426,9 @@ class AccountController extends APIController
           'token' => $data['token']
         ));
         $this->response['data'] = $result;
+      }else{
+        $this->response['data'] = null;
+        $this->response['error'] = 'Email does not exist';
       }
       return $this->response();
     }
