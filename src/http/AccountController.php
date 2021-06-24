@@ -25,7 +25,8 @@ class AccountController extends APIController
         "username"  => "unique:accounts"
       );
       $this->notRequired = array(
-        'token'
+        'token',
+        "password"
       );
     }
 
@@ -35,7 +36,7 @@ class AccountController extends APIController
      $invitationPassword = $request['password'];
      $dataAccount = array(
       'code'  => $this->generateCode(),
-      'password'        => Hash::make($request['password']),
+      'password'        => $request['password'] !== null ? Hash::make($request['password']) : "",
       'status'          => 'NOT_VERIFIED',
       'email'           => $request['email'],
       'username'        => $request['username'],
