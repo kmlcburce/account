@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+
 class AccountController extends APIController
 {
 
@@ -24,7 +25,8 @@ class AccountController extends APIController
         "username"  => "unique:accounts"
       );
       $this->notRequired = array(
-        'token'
+        'token',
+        "password"
       );
     }
 
@@ -34,13 +36,17 @@ class AccountController extends APIController
      $invitationPassword = $request['password'];
      $dataAccount = array(
       'code'  => $this->generateCode(),
-      'password'        => Hash::make($request['password']),
+      'password'        => $request['password'] !== null ? Hash::make($request['password']) : "",
       'status'          => 'NOT_VERIFIED',
       'email'           => $request['email'],
       'username'        => $request['username'],
       'account_type'    => $request['account_type'],
+      'token'           => isset($request['token']) ? $request['token'] : null,
       'created_at'      => Carbon::now()
      );
+     if(isset($request['token'])){
+       $dataAccount['token'] = $request['token'];
+     }
      $this->model = new Account();
      $this->insertDB($dataAccount, true);
      $accountId = $this->response['data'];
@@ -410,6 +416,21 @@ class AccountController extends APIController
           ->get();
       }
       return response()->json(array('data' => $ret));
+    }
+    
+    public function updateTokenByEmail(Request $request){
+      $data = $request->all();
+      $exist = Account::where('email', '=', $data['email'])->get();
+      if(sizeof($exist) > 0){
+        $result = Account::where('email', '=', $data['email'])->update(array(
+          'token' => $data['token']
+        ));
+        $this->response['data'] = $result;
+      }else{
+        $this->response['data'] = null;
+        $this->response['error'] = 'Email does not exist';
+      }
+      return $this->response();
     }
 
 }
