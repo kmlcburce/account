@@ -119,7 +119,7 @@ class AccountController extends APIController
       $this->response['data'] = $result ? true : false;
       if($this->response['data'] == true){
         if($data['status'] == 'ACCOUNT_VERIFIED'){
-          $details = 'your account is alread verified. You can now start creating request but if you want to earn while using Payhiram, Be our Partner. What are you waiting for? Apply Now!';
+          $details = 'your account is already verified. You can now start creating request but if you want to earn while using Payhiram, Be our Partner. What are you waiting for? Apply Now!';
         }else if($data['status'] == 'BASIC_VERIFIED'){
           $details = 'you are now an official Payhiram partner. Enjoy earning everyday with the maximum amount of 10,000 pesos. We are happy and excited to be part of your source of income.';
         }else if($data['status'] == 'STANDARD_VERIFIED'){
