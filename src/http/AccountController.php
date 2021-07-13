@@ -384,25 +384,14 @@ class AccountController extends APIController
       return (sizeof($result) > 0) ? $result[0] : null;
     }
 
-    public function getAccountTypeSize(Request $request){
-    $data = $request->all();
-    if($data['accountType'] == 'USER'){
-      $count = DB::table('accounts')
-        ->select('*')
-        ->get();
-    }else if($data['accountType'] == 'USER' && $data['status'] == 'ACCOUNT_VERIFIED'){
-      $count = DB::table('accounts')
-        ->select('*')
-        ->where('account_type', '=', $data['accountType'])
-        ->where('status', '=', 'ACCOUNT_VERIFIED')
-        ->get();
-    }else{
-      $count = DB::table('accounts')
-        ->select('*')
-        ->where('account_type', '=', $data['accountType'])
-        ->get();
-    }
-      return response()->json(array('data' => sizeOf($count)));
+    public function getAccountTypeSize(){
+      $this->response['data'] = array(
+        'total_users' => Account::count(),
+        'total_verified' => Account::where('status', '=', 'ACCOUNT_VERIFIED')->count(),
+        'total_partners' => Account::where('account_type', '=', 'PARTNER')->count(),
+        'total_admin' => Account::where('account_type', '=', 'ADMIN')->count()
+      );
+      return $this->response(); 
     }
 
     public function getAccountPending(Request $request){
