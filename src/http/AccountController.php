@@ -235,6 +235,7 @@ class AccountController extends APIController
         $i = 0;
         foreach ($result as $key) {
           $this->response['data'][$i] = $this->retrieveAppDetails($result[$i], $result[$i]['id']);
+          $this->response['data'][$i]['created_at_human'] = Carbon::createFromFormat('Y-m-d H:i:s', $result[$i]['created_at'])->copy()->tz($this->response['timezone'])->format('F j, Y h:i A');
           $this->response['data'][$i]['account'] = $this->retrieveAccountDetails($result[$i]['id']);
           $this->response['data'][$i]['card'] = app($this->accountCardController)->getAccountCard($result[$i]['id']);
           $this->response['data'][$i]['rating'] = app('Increment\Common\Rating\Http\RatingController')->getRatingByPayload('account', $result[$i]['id']);
