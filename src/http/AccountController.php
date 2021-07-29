@@ -306,6 +306,10 @@ class AccountController extends APIController
       return $this->response();
     }
 
+    public function updateByParamsByEmail($email, $data){
+      return Account::where('email', '=', $email)->update($data); 
+    }
+
     public function updateType(Request $request){ 
       $data = $request->all();
       $this->updateDB($data);
