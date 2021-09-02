@@ -426,5 +426,4 @@ class AccountController extends APIController
       }
       return $this->response();
     }
-
 }
