@@ -46,4 +46,10 @@ class MerchantController extends APIController
       return $code;
     }
   }
+
+  public function getByParams($column, $value)
+  {
+    $result = Merchant::where($column, '=', $value)->get();
+    return sizeof($result) > 0 ? $result[0] : null;
+  }
 }
