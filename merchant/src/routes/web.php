@@ -1,7 +1,7 @@
 <?php
 
 // Merchants
-$route = env('PACKAGE_ROUTE', '').'/merchants/';
+$route = env('PACKAGE_ROUTE', '').'/account_merchants/';
 $controller = 'Increment\Account\Merchant\Http\MerchantController@';
 Route::post($route.'create', $controller."create");
 Route::post($route.'retrieve', $controller."retrieve");
