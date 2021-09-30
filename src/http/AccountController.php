@@ -69,9 +69,49 @@ class AccountController extends APIController
           app('App\Http\Controllers\EmailController')->verification($accountId);
        }
      }
-    
      return $this->response();
     }
+
+    public function createAccount($request){
+      $referralCode = $request['referral_code'];
+      $invitationPassword = $request['password'];
+      $dataAccount = array(
+       'code'  => $this->generateCode(),
+       'password'        => $request['password'] !== null ? Hash::make($request['password']) : "",
+       'status'          => 'NOT_VERIFIED',
+       'email'           => $request['email'],
+       'username'        => $request['username'],
+       'account_type'    => $request['account_type'],
+       'token'           => isset($request['token']) ? $request['token'] : null,
+       'created_at'      => Carbon::now()
+      );
+      if(isset($request['token'])){
+        $dataAccount['token'] = $request['token'];
+      }
+      $this->model = new Account();
+      $this->insertDB($dataAccount, true);
+      $accountId = $this->response['data'];
+ 
+      if($accountId){
+        $this->createDetails($accountId, $request['account_type']);
+        //send email verification here
+        if($referralCode != null){
+           app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
+        }
+        if(env('SUB_ACCOUNT') == true){
+           $status = $request['status'];
+           if($status == 'ADMIN'){
+             app('Increment\Account\Http\SubAccountController')->createByParams($accountId, $accountId, $status);
+           }
+           if($status != 'ADMIN'){
+             app('Increment\Account\Http\SubAccountController')->createByParams($request['account_id'], $accountId, $status);
+             app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
+           }
+           app('App\Http\Controllers\EmailController')->verification($accountId);
+        }
+      }
+      return $this->response();
+     }
 
     public function createDetails($accountId, $type){
       $info = new AccountInformation();
@@ -427,8 +467,8 @@ class AccountController extends APIController
         ));
         $this->response['data'] = $result;
       }else{
-        $this->response['data'] = null;
-        $this->response['error'] = 'Email does not exist';
+        $result = $this->createAccount($data);
+        $this->response['data'] = $result;
       }
       return $this->response();
     }
