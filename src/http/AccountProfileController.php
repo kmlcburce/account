@@ -21,6 +21,13 @@ class AccountProfileController extends APIController
     return sizeof($result) > 0 ? $result[0] : null;
   }
 
+
+  public function getProfileUrlByAccountId($accountId){
+    $result = AccountProfile::where('account_id', '=', $accountId)->orderBy('created_at', 'desc')->get(['url']);
+    return sizeof($result) > 0 ? $result[0] : null;
+  }
+
+
   public function getByParamsWithColumns($accountId, $columns){
     $result = AccountProfile::where('account_id', '=', $accountId)->get($columns);
     return (sizeof($result) > 0) ? $result[0] : null;

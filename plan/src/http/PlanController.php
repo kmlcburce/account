@@ -20,7 +20,7 @@ class PlanController extends APIController
     $this->model = new Plan();
     $data['code'] = $this->generateCode();
     $this->insertDB($data);
-    $scope = app("Increment\Common\Scope\LocationScopeController")->retrieveByParams($data['location']['route'], ['code']);
+    $scope = app("Increment\Common\Scope\Http\LocationScopeController")->retrieveByParams($data['location']['route'], ['code']);
     if(isset($data['location']) && $data['location'] != null){
       Location::where('id', '=', $data['location']['id'])->update(array(
         'code' => sizeof($scope) > 0 ? $scope[0]['code'] : NULL,

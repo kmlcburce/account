@@ -275,6 +275,7 @@ class AccountController extends APIController
         $i = 0;
         foreach ($result as $key) {
           $this->response['data'][$i] = $this->retrieveAppDetails($result[$i], $result[$i]['id']);
+          $this->response['data'][$i]['created_at_human'] = Carbon::createFromFormat('Y-m-d H:i:s', $result[$i]['created_at'])->copy()->tz($this->response['timezone'])->format('F j, Y h:i A');
           $this->response['data'][$i]['account'] = $this->retrieveAccountDetails($result[$i]['id']);
           $this->response['data'][$i]['card'] = app($this->accountCardController)->getAccountCard($result[$i]['id']);
           $this->response['data'][$i]['rating'] = app('Increment\Common\Rating\Http\RatingController')->getRatingByPayload('account', $result[$i]['id']);
@@ -343,6 +344,10 @@ class AccountController extends APIController
         ));
       }
       return $this->response();
+    }
+
+    public function updateByParamsByEmail($email, $data){
+      return Account::where('email', '=', $email)->update($data); 
     }
 
     public function updateType(Request $request){ 
@@ -424,25 +429,14 @@ class AccountController extends APIController
       return (sizeof($result) > 0) ? $result[0] : null;
     }
 
-    public function getAccountTypeSize(Request $request){
-    $data = $request->all();
-    if($data['accountType'] == 'USER'){
-      $count = DB::table('accounts')
-        ->select('*')
-        ->get();
-    }else if($data['accountType'] == 'USER' && $data['status'] == 'ACCOUNT_VERIFIED'){
-      $count = DB::table('accounts')
-        ->select('*')
-        ->where('account_type', '=', $data['accountType'])
-        ->where('status', '=', 'ACCOUNT_VERIFIED')
-        ->get();
-    }else{
-      $count = DB::table('accounts')
-        ->select('*')
-        ->where('account_type', '=', $data['accountType'])
-        ->get();
-    }
-      return response()->json(array('data' => sizeOf($count)));
+    public function getAccountTypeSize(){
+      $this->response['data'] = array(
+        'total_users' => Account::count(),
+        'total_verified' => Account::where('status', '=', 'ACCOUNT_VERIFIED')->count(),
+        'total_partners' => Account::where('account_type', '=', 'PARTNER')->count(),
+        'total_admin' => Account::where('account_type', '=', 'ADMIN')->count()
+      );
+      return $this->response(); 
     }
 
     public function getAccountPending(Request $request){
@@ -472,5 +466,4 @@ class AccountController extends APIController
       }
       return $this->response();
     }
-
 }
