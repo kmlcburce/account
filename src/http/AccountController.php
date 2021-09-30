@@ -454,9 +454,9 @@ class AccountController extends APIController
     
     public function updateTokenByEmail(Request $request){
       $data = $request->all();
-      $exist = Account::where('email', '=', $data['email'])->get();
+      $exist = Account::where('email', '=', $data['email'])->orWhere('token', '=', $data['token'])->get();
       if(sizeof($exist) > 0){
-        $result = Account::where('email', '=', $data['email'])->update(array(
+        $result = Account::where('email', '=', $data['email'])->orWhere('token', '=', $data['token'])->update(array(
           'token' => $data['token']
         ));
         $this->response['data'] = $result;
