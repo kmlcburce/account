@@ -43,20 +43,21 @@ class PlanController extends APIController
 
   public function updateWithNotification(Request $request){
     $data = $request->all();
+    
     $result = Account::where('id', '=', $data['id'])->update(array(
       'status' => $data['status']
     ));
+    
+    
     $planData = array(
-      'topic' => 'device',
-      'title' => 'New Device Request for Account Access',
-      'message' => $device['model'].' is requesting an access to your account. Kindly use '.$code.' to continue to your activity.',
-      'code' => $code,
-      'model' => $device['model'],
-      'to' => $value['unique_code'],
-      'account_id' => $accountId,
-      'type' => 'devices'
+      'topic' => 'plan',
+      'title' => 'Your plan to PayHiram was '.$data['status'].'.',
+      'message' => $data['status'] == 'approved' ? "Your plan was success approved. You can now enjoyed sending proposals to our customers." : 'Please check your email for the needed requirements.',
+      'to' => $data['account_id'],
+      'account_id' => $accountId
     );
-    Notifications::dispatch('device', $planData);
+
+    Notifications::dispatch('plan', $planData);
     return $this->response();
   }
 
