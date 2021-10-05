@@ -6,6 +6,7 @@ $controller = 'Increment\Account\Plan\Http\PlanController@';
 Route::post($route.'create', $controller."create");
 Route::post($route.'retrieve', $controller."retrieve");
 Route::post($route.'update', $controller."update");
+Route::post($route.'update_with_notification', $controller."updateWithNotification");
 Route::post($route.'delete', $controller."delete");
 Route::post($route.'test', $controller."getByParamsScope");
 

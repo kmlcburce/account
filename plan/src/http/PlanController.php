@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Increment\Imarket\Location\Models\Location;
+use App\Jobs\Notifications;
 class PlanController extends APIController
 {
   function __construct(){
@@ -38,6 +39,25 @@ class PlanController extends APIController
     }else{
       return $code;
     }
+  }
+
+  public function updateWithNotification(Request $request){
+    $data = $request->all();
+    $result = Account::where('id', '=', $data['id'])->update(array(
+      'status' => $data['status']
+    ));
+    $planData = array(
+      'topic' => 'device',
+      'title' => 'New Device Request for Account Access',
+      'message' => $device['model'].' is requesting an access to your account. Kindly use '.$code.' to continue to your activity.',
+      'code' => $code,
+      'model' => $device['model'],
+      'to' => $value['unique_code'],
+      'account_id' => $accountId,
+      'type' => 'devices'
+    );
+    Notifications::dispatch('device', $planData);
+    return $this->response();
   }
 
   public function retrieve(Request $request){
