@@ -47,14 +47,14 @@ class PlanController extends APIController
     $result = Plan::where('id', '=', $data['id'])->update(array(
       'status' => $data['status']
     ));
-    
+
     
     $planData = array(
       'topic' => 'plan',
       'title' => 'Your plan to PayHiram was '.$data['status'].'.',
       'message' => $data['status'] == 'approved' ? "Your plan was success approved. You can now enjoyed sending proposals to our customers." : 'Please check your email for the needed requirements.',
       'to' => $data['account_id'],
-      'account_id' => $accountId
+      'account_id' => $data['account_id']
     );
 
     Notifications::dispatch('plan', $planData);
