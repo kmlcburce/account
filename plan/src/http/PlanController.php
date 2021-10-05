@@ -44,7 +44,7 @@ class PlanController extends APIController
   public function updateWithNotification(Request $request){
     $data = $request->all();
     
-    $result = Account::where('id', '=', $data['id'])->update(array(
+    $result = Plan::where('id', '=', $data['id'])->update(array(
       'status' => $data['status']
     ));
     
