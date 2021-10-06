@@ -1,6 +1,10 @@
 <?php
 use App\Http\Middleware\EnsureTokenIsValid;
 
+$route = env('PACKAGE_ROUTE', '').'/accounts/';
+$controller = 'Increment\Account\Http\AccountController@';
+Route::post($route.'create', $controller."create");
+
 // $route = env('PACKAGE_ROUTE', '');
 Route::middleware(EnsureTokenIsValid::class)->group(function () {
       // Billing Information
@@ -25,7 +29,7 @@ Route::middleware(EnsureTokenIsValid::class)->group(function () {
       // Account
       $route = env('PACKAGE_ROUTE', '').'/accounts/';
       $controller = 'Increment\Account\Http\AccountController@';
-      Route::post($route.'create', $controller."create");
+      // Route::post($route.'create', $controller."create");
       Route::post($route.'retrieve', $controller."retrieve");
       Route::post($route.'retrieve_accounts', $controller.'retrieveAccounts');
       Route::post($route.'retrieve_account_profile', $controller.'retrieveAccountProfile');
