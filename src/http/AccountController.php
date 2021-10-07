@@ -503,10 +503,10 @@ class AccountController extends APIController
           $token = json_decode($temp['token']);
           if($token === null){
             $newToken = array(
-              'token' => $token
+              'token' => $temp['token']
             );
             Account::where('id', '=', $temp['id'])->update(array(
-              'token' => json_encode($token)
+              'token' => json_encode($newToken)
             ));
           }
           return response()->json(array(
