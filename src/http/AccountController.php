@@ -56,7 +56,7 @@ class AccountController extends APIController
        $this->createDetails($accountId, $request['account_type']);
        //send email verification here
        if($referralCode != null){
-          app('Increment\Common\Invitation\Http\InvitationController')->confirmReferral($referralCode);
+          app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
        }
        if(env('SUB_ACCOUNT') == true){
           $status = $request['status'];
@@ -455,10 +455,22 @@ class AccountController extends APIController
     
     public function updateTokenByEmail(Request $request){
       $data = $request->all();
-      $exist = Account::where('email', '=', $data['email'])->orWhere('token', '=', $data['token'])->get();
-      if(sizeof($exist) > 0){
+      $exist = Account::where('email', '=', $data['email'])->orWhere('token', 'like', '%'.$data['token'].'%')->first();
+      // dd(json_decode($exist['token']));
+      if($exist !== null){
+        $token = json_decode($exist['token']);
+        $newToken = array(
+          'token' => $token->token
+        );
+        if($data['social'] == 'google'){
+         $newToken['google'] = $data['token'];
+        }else if($data['social'] == 'apple'){
+          $newToken['apple'] =  $data['token'];
+        }else if($data['social'] == 'facebook'){
+          $newToken['facebook'] = $data['token'];
+        }
         $result = Account::where('email', '=', $data['email'])->orWhere('token', '=', $data['token'])->update(array(
-          'token' => $data['token']
+          'token' => json_encode($newToken)
         ));
         $this->response['data'] = $result;
       }else{
