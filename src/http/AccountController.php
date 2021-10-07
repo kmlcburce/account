@@ -26,7 +26,8 @@ class AccountController extends APIController
       );
       $this->notRequired = array(
         'token',
-        "password"
+        "password",
+        "email"
       );
     }
 
