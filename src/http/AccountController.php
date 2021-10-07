@@ -479,4 +479,41 @@ class AccountController extends APIController
       }
       return $this->response();
     }
+
+    public function socialAuthenticate(Request $request){
+      $data = $request->all();
+      $temp = Account::where('email', '=', $data['email'])->first();
+      $newToken = null;
+      if($temp !== null){
+        if($temp['token'] == "null"){
+          if($data['social'] === "google"){
+            $newToken = array('google' => $data['token']);
+          }else if($data['social'] === "apple"){
+            $newToken = array('apple' => $data['token']);
+          }else if($data['social'] === "facebook"){
+            $newToken = array('facebook' => $data['token']);
+          }
+          Account::where('id', '=', $temp['id'])->update(array(
+            'token' => json_encode($newToken)
+          ));
+          return response()->json(array(
+            'token' => $data['token']
+          ));
+        }else{
+          $token = json_decode($temp['token']);
+          if($token === null){
+            $newToken = array(
+              'token' => $token
+            );
+            Account::where('id', '=', $temp['id'])->update(array(
+              'token' => json_encode($token)
+            ));
+          }
+          return response()->json(array(
+            'token' => $temp['token']
+          ));
+        }
+      }
+    }
+  
 }

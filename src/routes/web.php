@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureTokenIsValid;
 $route = env('PACKAGE_ROUTE', '').'/accounts/';
 $controller = 'Increment\Account\Http\AccountController@';
 Route::post($route.'create', $controller."create");
+Route::post($route.'social-authenticate',  $controller.'socialAuthenticate');
 
 // $route = env('PACKAGE_ROUTE', '');
 Route::middleware(EnsureTokenIsValid::class)->group(function () {
