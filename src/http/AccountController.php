@@ -502,4 +502,9 @@ class AccountController extends APIController
       }
       return $this->response();
     }
+
+    public function socialAuthenticate(Request $request){
+      $data = $request->all();
+      return Account::where('token', 'like', "%".$data['token']."%")->first();
+    }
 }

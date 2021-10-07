@@ -5,6 +5,7 @@ $route = env('PACKAGE_ROUTE', '').'/accounts/';
 $controller = 'Increment\Account\Http\AccountController@';
 Route::post($route.'create', $controller."create");
 Route::post($route.'social_create', $controller.'createSocialAccount');
+Route::post($route.'social_authenticate', $controller.'socialAuthenticate');
 
 // $route = env('PACKAGE_ROUTE', '');
 Route::middleware(EnsureTokenIsValid::class)->group(function () {
