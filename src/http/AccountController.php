@@ -505,7 +505,27 @@ class AccountController extends APIController
 
     public function socialAuthenticate(Request $request){
       $data = $request->all();
-      $this->response['data'] = Account::where('token', 'like', "%".$data['token']."%")->first();
-      return $this->response();
-    }
+      $temp = Account::where('token', 'like', "%".$data['token']."%")->first();
+      if($temp !== null){
+        if($temp['token'] !== null){
+            $decode = json_decode($temp['token']);
+            if($decode !== null){
+              if(isset($decode->token)){
+                $this->response['data'] = $decode->token;
+              }else{
+                if(isset($decode->google)){
+                  $this->response['data'] = $decode->google;
+                }else if(isset($decode->apple)){
+                  $this->response['data'] = $decode->apple;
+                }else if(isset($decode->apple)){
+                  $this->response['data'] -> $decode->facebook;
+                }
+              }
+            }else{
+              $this->response['data'] = $temp['token'];
+            }
+          }
+        }
+        return $this->response();
+      }
 }
