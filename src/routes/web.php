@@ -4,7 +4,7 @@ use App\Http\Middleware\EnsureTokenIsValid;
 $route = env('PACKAGE_ROUTE', '').'/accounts/';
 $controller = 'Increment\Account\Http\AccountController@';
 Route::post($route.'create', $controller."create");
-Route::post($route.'social-authenticate',  $controller.'socialAuthenticate');
+Route::post($route.'social_create', $controller.'createSocialAccount');
 
 // $route = env('PACKAGE_ROUTE', '');
 Route::middleware(EnsureTokenIsValid::class)->group(function () {
@@ -49,7 +49,7 @@ Route::middleware(EnsureTokenIsValid::class)->group(function () {
       Route::post($route.'update_last_log_in', $controller.'updateLastLogin');
       Route::post($route.'retrieve_type_size', $controller.'getAccountTypeSize');
       Route::post($route.'retrieve_pending_verified', $controller.'getAccountPending');
-      Route::post($route.'social_login', $controller.'updateTokenByEmail');
+      Route::post($route.'social_login', $controller.'loginSocialAccount');
 
       // Account Profile
       $route = env('PACKAGE_ROUTE', '').'/account_profiles/';
