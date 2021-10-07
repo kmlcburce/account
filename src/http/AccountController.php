@@ -505,6 +505,7 @@ class AccountController extends APIController
 
     public function socialAuthenticate(Request $request){
       $data = $request->all();
-      return Account::where('token', 'like', "%".$data['token']."%")->first();
+      $this->response['data'] = Account::where('token', 'like', "%".$data['token']."%")->first();
+      return $this->response();
     }
 }
