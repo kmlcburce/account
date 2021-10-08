@@ -496,9 +496,10 @@ class AccountController extends APIController
         $newToken['google'] = $data['social'] === 'google' ? $data['socialToken'] : null;
         $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : null;
         $newToken['facebook'] = $data['social'] === 'facebook' ? $data['socialToken'] : null;
-        $this->response['data'] = Account::where('email', '=', $data['email'])->where('username', '=', $data['username'])->update(array(
+        $update = Account::where('email', '=', $data['email'])->where('username', '=', $data['username'])->update(array(
           'token' => json_encode($newToken),
         ));
+        $this->response['data'] = $update !== null ? $exist['id'] : null;
       }else{
         $dataAccount = array(
           'code'  => $this->generateCode(),
