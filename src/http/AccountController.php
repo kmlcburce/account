@@ -458,14 +458,14 @@ class AccountController extends APIController
     public function loginSocialAccount(Request $request){
       $data = $request->all();
       $exist = Account::where('email', '=', $data['email'])->orWhere('token', 'like', '%'.$data['socialToken'].'%')->first();
-      $newToken = array(
-        'apple' => null,
-        'token' => null,
-        'google' => null,
-        'facebook' => null
-      );
       if($exist !== null){
         $token = json_decode($exist['token']);
+        $newToken = array(
+          'apple' => isset($token->apple) ? $token->apple : null,
+          'token' => isset($token->token) ? $token->token : null,
+          'google' => isset($token->google) ? $token->google : null,
+          'facebook' => isset($token->facebook) ? $token->facebook : null
+        );
         $newToken['token'] = isset($token->token) ? $token->token : null;
         $newToken['google'] = $data['social'] === 'google' ? $data['socialToken'] : null;
         $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : null;
@@ -484,14 +484,14 @@ class AccountController extends APIController
     public function createSocialAccount(Request $request){
       $data = $request->all();
       $exist = Account::where('email', '=', $data['email'])->where('username', '=', $data['username'])->first();
-      $newToken = array(
-        'apple' => null,
-        'token' => null,
-        'google' => null,
-        'facebook' => null
-      );
       if($exist != null){
         $token = json_decode($exist['token']);
+        $newToken = array(
+          'apple' => isset($token->apple) ? $token->apple : null,
+          'token' => isset($token->token) ? $token->token : null,
+          'google' => isset($token->google) ? $token->google : null,
+          'facebook' => isset($token->facebook) ? $token->facebook : null
+        );
         $newToken['token'] = isset($token->token) ? $token->token : null;
         $newToken['google'] = $data['social'] === 'google' ? $data['socialToken'] : null;
         $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : null;
