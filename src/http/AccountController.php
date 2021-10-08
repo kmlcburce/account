@@ -497,7 +497,7 @@ class AccountController extends APIController
         $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : null;
         $newToken['facebook'] = $data['social'] === 'facebook' ? $data['socialToken'] : null;
         $this->response['data'] = Account::where('email', '=', $data['email'])->where('username', '=', $data['username'])->update(array(
-          'token' => $newToken,
+          'token' => json_encode($newToken),
         ));
       }else{
         $dataAccount = array(
@@ -514,13 +514,13 @@ class AccountController extends APIController
          );
         $this->model = new Account();
         $this->insertDB($dataAccount, true);
-        $accountId = $this->response['data'];
-        if($accountId !== null){
-          $this->createDetails($accountId, $request['account_type']);
-          $token = Account::where('id', '=', $accountId)->first();
-          $returnToken = $token !== null ? json_decode($token['token']) : null;
-          $this->response['data'] = $returnToken !== null ? $returnToken->token : null;
-        }
+      }
+      $accountId = $this->response['data'];
+      if($accountId !== null){
+        $this->createDetails($accountId, $request['account_type']);
+        $token = Account::where('id', '=', $accountId)->first();
+        $returnToken = $token !== null ? json_decode($token['token']) : null;
+        $this->response['data'] = $returnToken !== null ? $returnToken->token : null;
       }
       return $this->response();
     }
