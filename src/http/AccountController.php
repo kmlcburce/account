@@ -490,8 +490,8 @@ class AccountController extends APIController
         'email'           => $data['email'],
         'username'        => $data['username'],
         'account_type'    => $data['account_type'],
-        'token'           => isset($data['token']) ? json_encode(array(
-          'token' => $data['token']
+        'token'           => isset($data['socialToken']) ? json_encode(array(
+          'token' => $data['socialToken']
          )) : null,
         'created_at'      => Carbon::now()
        );
