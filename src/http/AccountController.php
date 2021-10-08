@@ -83,7 +83,9 @@ class AccountController extends APIController
        'email'           => $request['email'],
        'username'        => $request['username'],
        'account_type'    => $request['account_type'],
-       'token'           => isset($request['token']) ? $request['token'] : null,
+       'token'           => isset($request['token']) ? json_encode(array(
+         'token' => $request['token']
+       )): null,
        'created_at'      => Carbon::now()
       );
       if(isset($request['token'])){
@@ -488,7 +490,9 @@ class AccountController extends APIController
         'email'           => $data['email'],
         'username'        => $data['username'],
         'account_type'    => $data['account_type'],
-        'token'           => isset($data['socialToken']) ? $data['socialToken'] : null,
+        'token'           => isset($data['token']) ? json_encode(array(
+          'token' => $data['token']
+         )) : null,
         'created_at'      => Carbon::now()
        );
       $this->model = new Account();
@@ -497,7 +501,8 @@ class AccountController extends APIController
       if($accountId !== null){
         $this->createDetails($accountId, $request['account_type']);
         $token = Account::where('id', '=', $accountId)->first();
-        $this->response['data'] = $token !== null ? $token['token'] : null;
+        $returnToken = $token !== null ? json_decode($token['token']) : null;
+        $this->response['data'] = $returnToken !== null ? $returnToken->token : null;
       }
       return $this->response();
     }
