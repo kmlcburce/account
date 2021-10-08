@@ -483,26 +483,44 @@ class AccountController extends APIController
 
     public function createSocialAccount(Request $request){
       $data = $request->all();
-      $dataAccount = array(
-        'code'  => $this->generateCode(),
-        'password'        => $data['password'] !== null ? Hash::make($request['password']) : "",
-        'status'          => 'NOT_VERIFIED',
-        'email'           => $data['email'],
-        'username'        => $data['username'],
-        'account_type'    => $data['account_type'],
-        'token'           => isset($data['socialToken']) ? json_encode(array(
-          'token' => $data['socialToken']
-         )) : null,
-        'created_at'      => Carbon::now()
-       );
-      $this->model = new Account();
-      $this->insertDB($dataAccount, true);
-      $accountId = $this->response['data'];
-      if($accountId !== null){
-        $this->createDetails($accountId, $request['account_type']);
-        $token = Account::where('id', '=', $accountId)->first();
-        $returnToken = $token !== null ? json_decode($token['token']) : null;
-        $this->response['data'] = $returnToken !== null ? $returnToken->token : null;
+      $exist = Account::where('email', '=', $data['email'])->where('username', '=', $data['username'])->first();
+      $newToken = array(
+        'apple' => null,
+        'token' => null,
+        'google' => null,
+        'facebook' => null
+      );
+      if($exist != null){
+        $token = json_decode($exist['token']);
+        $newToken['token'] = isset($token->token) ? $token->token : null;
+        $newToken['google'] = $data['social'] === 'google' ? $data['socialToken'] : null;
+        $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : null;
+        $newToken['facebook'] = $data['social'] === 'facebook' ? $data['socialToken'] : null;
+        $this->response['data'] = Account::where('email', '=', $data['email'])->where('username', '=', $data['username'])->update(array(
+          'token' => $newToken,
+        ));
+      }else{
+        $dataAccount = array(
+          'code'  => $this->generateCode(),
+          'password'        => $data['password'] !== null ? Hash::make($request['password']) : "",
+          'status'          => 'NOT_VERIFIED',
+          'email'           => $data['email'],
+          'username'        => $data['username'],
+          'account_type'    => $data['account_type'],
+          'token'           => isset($data['socialToken']) ? json_encode(array(
+            'token' => $data['socialToken']
+           )) : null,
+          'created_at'      => Carbon::now()
+         );
+        $this->model = new Account();
+        $this->insertDB($dataAccount, true);
+        $accountId = $this->response['data'];
+        if($accountId !== null){
+          $this->createDetails($accountId, $request['account_type']);
+          $token = Account::where('id', '=', $accountId)->first();
+          $returnToken = $token !== null ? json_decode($token['token']) : null;
+          $this->response['data'] = $returnToken !== null ? $returnToken->token : null;
+        }
       }
       return $this->response();
     }
