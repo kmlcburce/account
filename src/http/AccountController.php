@@ -83,14 +83,14 @@ class AccountController extends APIController
        'email'           => $request['email'],
        'username'        => $request['username'],
        'account_type'    => $request['account_type'],
-       'token'           => isset($request['token']) ? json_encode(array(
-         'token' => $request['token']
+       'token'           => isset($request['socialToken']) ? json_encode(array(
+         'token' => $request['socialToken']
        )): null,
        'created_at'      => Carbon::now()
       );
-      if(isset($request['token'])){
-        $dataAccount['token'] = $request['token'];
-      }
+      // if(isset($request['socialToken'])){
+      //   $dataAccount['token'] = $request['socialToken'];
+      // }
       $this->model = new Account();
       $this->insertDB($dataAccount, true);
       $accountId = $this->response['data'];
@@ -457,7 +457,7 @@ class AccountController extends APIController
     
     public function loginSocialAccount(Request $request){
       $data = $request->all();
-      $exist = Account::where('email', '=', $data['email'])->orWhere('token', 'like', '%'.$data['token'].'%')->first();
+      $exist = Account::where('email', '=', $data['email'])->orWhere('token', 'like', '%'.$data['socialToken'].'%')->first();
       $newToken = array(
         'apple' => null,
         'token' => null,
@@ -470,7 +470,7 @@ class AccountController extends APIController
         $newToken['google'] = isset($token->google) ? $token->google : null;
         $newToken['apple'] = isset($token->apple) ? $token->apple : null;
         $newToken['facebook'] = isset($token->facebook) ? $token->facebook : null;
-        $result = Account::where('email', '=', $data['email'])->orWhere('token', '=', $data['token'])->update(array(
+        $result = Account::where('email', '=', $data['email'])->orWhere('token', '=', $data['socialToken'])->update(array(
           'token' => json_encode($newToken)
         ));
         $this->response['data'] = $result;
