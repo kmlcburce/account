@@ -204,6 +204,22 @@ class AccountController extends APIController
       }
     }
 
+    public function retrieveAccountAdmin(Request $request){
+      $data = $request->all();
+      $this->model = new Account();
+      $result = $this->retrieveDB($data);
+      if(sizeof($result) > 0){
+        $i = 0;
+        foreach ($result as $key) {
+          $result[$i] = $this->retrieveDetailsOnLogin($result[$i]);
+          $i++;
+        }
+        return response()->json(array('data' => $result));
+      }else{
+        return $this->response();
+      }
+    }
+
     public function retrieveAccountProfile(Request $request){
       $data = $request->all();
       $result = Account::where('id', '=', $data['account_id'])->get();
@@ -424,6 +440,26 @@ class AccountController extends APIController
         $this->response['data'] = null;
         $this->response['error'] = 'Email does not exist';
       }
+      return $this->response();
+    }
+    
+    public function retrieveAccountMezzo(Request $request){
+      $data = $request->all();
+      $con = $data['condition'];
+      $result = Account::leftJoin('account_informations as T1', 'T1.account_id', '=', 'accounts.id')
+        ->where($con[0]['column'], $con[0]['clause'], $con[0]['value'])
+        ->where('account_type', '!=', 'ADMIN')
+        ->limit($data['limit'])
+        ->offset($data['offset'])
+        ->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])
+        ->get();
+      for ($i=0; $i <= sizeof($result)-1 ; $i++) { 
+        $item = $result[$i];
+        $result[$i]['total_bookings'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalReservationsByAccount($item['account_id']);
+        $result[$i]['total_spent'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalSpentByAcccount($item['account_id']);
+        $result[$i]['name'] = $item['first_name'].' '.$item['last_name'];
+      }
+      $this->response['data'] = $result;
       return $this->response();
     }
 }

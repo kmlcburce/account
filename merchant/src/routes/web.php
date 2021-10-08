@@ -2,7 +2,7 @@
 
 // Merchants
 $route = env('PACKAGE_ROUTE', '').'/merchants/';
-$controller = 'Increment\Imarket\Merchant\Http\MerchantController@';
+$controller = 'Increment\Account\Merchant\Http\MerchantController@';
 Route::post($route.'create', $controller."create");
 Route::post($route.'retrieve_merchants', $controller."retrieveMerchants");
 Route::post($route.'retrieve', $controller."retrieve");
