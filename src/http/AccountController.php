@@ -467,9 +467,9 @@ class AccountController extends APIController
           'facebook' => isset($token->facebook) ? $token->facebook : null
         );
         $newToken['token'] = isset($token->token) ? $token->token : null;
-        $newToken['google'] = $data['social'] === 'google' ? $data['socialToken'] : null;
-        $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : null;
-        $newToken['facebook'] = $data['social'] === 'facebook' ? $data['socialToken'] : null;
+        $newToken['google'] = $data['social'] === 'google' ? $data['socialToken'] : $newToken['google'];
+        $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : $newToken['apple'];
+        $newToken['facebook'] = $data['social'] === 'facebook' ? $data['socialToken'] : $newToken['facebook'];
         $result = Account::where('email', '=', $data['email'])->orWhere('token', '=', $data['socialToken'])->update(array(
           'token' => json_encode($newToken)
         ));
@@ -493,9 +493,9 @@ class AccountController extends APIController
           'facebook' => isset($token->facebook) ? $token->facebook : null
         );
         $newToken['token'] = isset($token->token) ? $token->token : null;
-        $newToken['google'] = $data['social'] === 'google' ? $data['socialToken'] : null;
-        $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : null;
-        $newToken['facebook'] = $data['social'] === 'facebook' ? $data['socialToken'] : null;
+        $newToken['google'] = $data['social'] === 'google' ? $data['socialToken'] : $newToken['google'];
+        $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : $newToken['apple'];
+        $newToken['facebook'] = $data['social'] === 'facebook' ? $data['socialToken'] : $newToken['facebook'];
         $update = Account::where('email', '=', $data['email'])->where('username', '=', $data['username'])->update(array(
           'token' => json_encode($newToken),
         ));
