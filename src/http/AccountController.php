@@ -467,9 +467,9 @@ class AccountController extends APIController
       if($exist !== null){
         $token = json_decode($exist['token']);
         $newToken['token'] = isset($token->token) ? $token->token : null;
-        $newToken['google'] = isset($token->google) ? $token->google : null;
-        $newToken['apple'] = isset($token->apple) ? $token->apple : null;
-        $newToken['facebook'] = isset($token->facebook) ? $token->facebook : null;
+        $newToken['google'] = $data['social'] === 'google' ? $data['socialToken'] : null;
+        $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : null;
+        $newToken['facebook'] = $data['social'] === 'facebook' ? $data['socialToken'] : null;
         $result = Account::where('email', '=', $data['email'])->orWhere('token', '=', $data['socialToken'])->update(array(
           'token' => json_encode($newToken)
         ));
