@@ -4,6 +4,8 @@ use App\Http\Middleware\EnsureTokenIsValid;
 $route = env('PACKAGE_ROUTE', '').'/accounts/';
 $controller = 'Increment\Account\Http\AccountController@';
 Route::post($route.'create', $controller."create");
+Route::post($route.'request_reset',  $controller."requestReset");
+Route::post($route.'update_password', $controller.'updatePassword');
 
 // $route = env('PACKAGE_ROUTE', '');
 Route::middleware(EnsureTokenIsValid::class)->group(function () {
@@ -39,8 +41,6 @@ Route::middleware(EnsureTokenIsValid::class)->group(function () {
       Route::get($route.'test', $controller."test");
       Route::post($route.'mail',  $controller."testMail");
       Route::post($route.'verify', $controller."verify");
-      Route::post($route.'request_reset',  $controller."requestReset");
-      Route::post($route.'update_password', $controller.'updatePassword');
       Route::post($route.'update_email', $controller.'updateEmail');
       Route::post($route.'update_type', $controller.'updateType');
       Route::post($route.'update_account_type', $controller.'updateAccountType');
