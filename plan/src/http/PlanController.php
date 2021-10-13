@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Increment\Imarket\Location\Models\Location;
+use App\Jobs\Notifications;
 class PlanController extends APIController
 {
   function __construct(){
@@ -38,6 +39,26 @@ class PlanController extends APIController
     }else{
       return $code;
     }
+  }
+
+  public function updateWithNotification(Request $request){
+    $data = $request->all();
+    
+    $result = Plan::where('id', '=', $data['id'])->update(array(
+      'status' => $data['status']
+    ));
+
+    
+    $planData = array(
+      'topic' => 'plan',
+      'title' => 'Your plan to PayHiram was '.$data['status'].'.',
+      'message' => $data['status'] == 'approved' ? "Your plan was success approved. You can now enjoyed sending proposals to our customers." : 'Please check your email for the needed requirements.',
+      'to' => $data['account_id'],
+      'account_id' => $data['account_id']
+    );
+
+    Notifications::dispatch('plan', $planData);
+    return $this->response();
   }
 
   public function retrieve(Request $request){

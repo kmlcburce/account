@@ -26,7 +26,8 @@ class AccountController extends APIController
       );
       $this->notRequired = array(
         'token',
-        "password"
+        "password",
+        "email"
       );
     }
 
@@ -82,12 +83,14 @@ class AccountController extends APIController
        'email'           => $request['email'],
        'username'        => $request['username'],
        'account_type'    => $request['account_type'],
-       'token'           => isset($request['token']) ? $request['token'] : null,
+       'token'           => isset($request['socialToken']) ? json_encode(array(
+         'token' => $request['socialToken']
+       )): null,
        'created_at'      => Carbon::now()
       );
-      if(isset($request['token'])){
-        $dataAccount['token'] = $request['token'];
-      }
+      // if(isset($request['socialToken'])){
+      //   $dataAccount['token'] = $request['socialToken'];
+      // }
       $this->model = new Account();
       $this->insertDB($dataAccount, true);
       $accountId = $this->response['data'];
@@ -229,6 +232,22 @@ class AccountController extends APIController
     }
 
     public function retrieve(Request $request){
+      $data = $request->all();
+      $this->model = new Account();
+      $result = $this->retrieveDB($data);
+      if(sizeof($result) > 0){
+        $i = 0;
+        foreach ($result as $key) {
+          $result[$i] = $this->retrieveDetailsOnLogin($result[$i]);
+          $i++;
+        }
+        return response()->json(array('data' => $result));
+      }else{
+        return $this->response();
+      }
+    }
+
+    public function retrieveAccountAdmin(Request $request){
       $data = $request->all();
       $this->model = new Account();
       $result = $this->retrieveDB($data);
@@ -452,12 +471,23 @@ class AccountController extends APIController
       return response()->json(array('data' => $ret));
     }
     
-    public function updateTokenByEmail(Request $request){
+    public function loginSocialAccount(Request $request){
       $data = $request->all();
-      $exist = Account::where('email', '=', $data['email'])->orWhere('token', '=', $data['token'])->get();
-      if(sizeof($exist) > 0){
-        $result = Account::where('email', '=', $data['email'])->orWhere('token', '=', $data['token'])->update(array(
-          'token' => $data['token']
+      $exist = Account::where('email', '=', $data['email'])->orWhere('token', 'like', '%'.$data['socialToken'].'%')->first();
+      if($exist !== null){
+        $token = json_decode($exist['token']);
+        $newToken = array(
+          'apple' => isset($token->apple) ? $token->apple : null,
+          'token' => isset($token->token) ? $token->token : null,
+          'google' => isset($token->google) ? $token->google : null,
+          'facebook' => isset($token->facebook) ? $token->facebook : null
+        );
+        $newToken['token'] = isset($token->token) ? $token->token : null;
+        $newToken['google'] = $data['social'] === 'google' ? $data['socialToken'] : $newToken['google'];
+        $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : $newToken['apple'];
+        $newToken['facebook'] = $data['social'] === 'facebook' ? $data['socialToken'] : $newToken['facebook'];
+        $result = Account::where('email', '=', $data['email'])->orWhere('token', '=', $data['socialToken'])->update(array(
+          'token' => json_encode($newToken)
         ));
         $this->response['data'] = $result;
       }else{
@@ -466,4 +496,113 @@ class AccountController extends APIController
       }
       return $this->response();
     }
+    
+    public function retrieveAccountMezzo(Request $request){
+      $data = $request->all();
+      $con = $data['condition'];
+      $result = Account::leftJoin('account_informations as T1', 'T1.account_id', '=', 'accounts.id')
+        ->where($con[0]['column'], $con[0]['clause'], $con[0]['value'])
+        ->where('account_type', '!=', 'ADMIN')
+        ->limit($data['limit'])
+        ->offset($data['offset'])
+        ->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])
+        ->get();
+      for ($i=0; $i <= sizeof($result)-1 ; $i++) { 
+        $item = $result[$i];
+        $result[$i]['total_bookings'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalReservationsByAccount($item['account_id']);
+        $result[$i]['total_spent'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalSpentByAcccount($item['account_id']);
+        $result[$i]['name'] = $item['first_name'].' '.$item['last_name'];
+      }
+      $this->response['data'] = $result;
+      return $this->response();
+    }
+
+    public function createSocialAccount(Request $request){
+      $data = $request->all();
+      $exist = Account::where('email', '=', $data['email'])->where('username', '=', $data['username'])->first();
+      if($exist != null){
+        $token = json_decode($exist['token']);
+        $newToken = array(
+          'apple' => isset($token->apple) ? $token->apple : null,
+          'token' => isset($token->token) ? $token->token : null,
+          'google' => isset($token->google) ? $token->google : null,
+          'facebook' => isset($token->facebook) ? $token->facebook : null
+        );
+        $newToken['token'] = isset($token->token) ? $token->token : null;
+        $newToken['google'] = $data['social'] === 'google' ? $data['socialToken'] : $newToken['google'];
+        $newToken['apple'] = $data['social'] === 'apple' ? $data['socialToken'] : $newToken['apple'];
+        $newToken['facebook'] = $data['social'] === 'facebook' ? $data['socialToken'] : $newToken['facebook'];
+        $update = Account::where('email', '=', $data['email'])->where('username', '=', $data['username'])->update(array(
+          'token' => json_encode($newToken),
+        ));
+        $this->response['data'] = $update !== null ? $exist['id'] : null;
+      }else{
+        $dataAccount = array(
+          'code'  => $this->generateCode(),
+          'password'        => $data['password'] !== null ? Hash::make($request['password']) : "",
+          'status'          => 'NOT_VERIFIED',
+          'email'           => $data['email'],
+          'username'        => $data['username'],
+          'account_type'    => $data['account_type'],
+          'token'           => isset($data['socialToken']) ? json_encode(array(
+            'token' => $data['socialToken']
+           )) : null,
+          'created_at'      => Carbon::now()
+         );
+        $this->model = new Account();
+        $this->insertDB($dataAccount, true);
+      }
+      $accountId = $this->response['data'];
+      if($accountId !== null){
+        $this->createDetails($accountId, $request['account_type']);
+        $token = Account::where('id', '=', $accountId)->first();
+        $returnToken = $token !== null ? json_decode($token['token']) : null;
+        $this->response['data'] = $returnToken !== null ? $returnToken->token : null;
+      }
+      return $this->response();
+    }
+
+    public function socialAuthenticate(Request $request){
+      $data = $request->all();
+      $temp = Account::where('token', 'like', "%".$data['token']."%")->orWhere('email', '=', $data['email'])->first();
+      $newToken = array(
+        'apple' => null,
+        'token' => null,
+        'google' => null,
+        'facebook' => null
+      );
+      if($temp !== null){
+        if($temp['token'] !== null){
+            $decode = json_decode($temp['token']);
+            if($decode !== null){
+              $newToken['token'] = isset($decode->token) ? $decode->token : null;
+              $newToken['google'] = isset($decode->google) ? $decode->google : null;
+              $newToken['apple'] = isset($decode->apple) ? $decode->apple : null;
+              $newToken['facebook'] = isset($decode->facebook) ? $decode->facebook : null;
+              if(isset($decode->token)){
+                $this->response['data'] = $decode->token;
+                $newToken['token'] = $decode->token;
+              }else{
+                if(isset($decode->google)){
+                  $newToken['google'] = $decode->google;
+                  $this->response['data'] = $decode->google;
+                }else if(isset($decode->apple)){
+                  $newToken['apple'] = $decode->apple;
+                  $this->response['data'] = $decode->apple;
+                }else if(isset($decode->apple)){
+                  $newToken['facebook'] = $decode->facebook;
+                  $this->response['data'] -> $decode->facebook;
+                }
+              }
+            }else{
+              $newToken['token'] =  $temp['token'];
+              $this->response['data'] = $temp['token'];
+            }
+          }
+        }
+        Account::where('token', 'like', "%".$data['token']."%")->orWhere('email', '=', $data['email'])->update(array(
+          'token' => json_encode($newToken)
+        ));
+        return $this->response();
+      }
 }
