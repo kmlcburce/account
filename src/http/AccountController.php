@@ -38,7 +38,7 @@ class AccountController extends APIController
      $dataAccount = array(
       'code'  => $this->generateCode(),
       'password'        => $request['password'] !== null ? Hash::make($request['password']) : "",
-      'status'          => isset($request['status']) ? $request['status'] :'NOT_VERIFIED',
+      'status'          => isset($request['account_status']) ? $request['account_status'] :'NOT_VERIFIED',
       'email'           => $request['email'],
       'username'        => $request['username'],
       'account_type'    => $request['account_type'],
