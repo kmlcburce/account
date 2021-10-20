@@ -146,7 +146,7 @@ class AccountController extends APIController
       $this->model = new Account();
       $this->retrieveDB($data);
       if(sizeof($this->response['data']) > 0){
-        app('App\Http\Controllers\EmailController')->verification($this->response['data'][0]['id']);  
+        app('App\Http\Controllers\EmailController')->directVerification($this->response['data'][0]['id']);  
       }
       return $this->response();
     }
