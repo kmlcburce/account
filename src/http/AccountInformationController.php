@@ -40,7 +40,7 @@ class AccountInformationController extends APIController
           $check = $this->checkIfAccountIdExist(json_decode($allAdd[$i]->id));
           if($check === false){
             $a=0;
-            $exist = $size = Payload::where('payload', '=', 'competitor')->where('payload_value', 'like', '%'.json_decode($allAdd[$i]->address)->locality.'%')->get();
+            $exist = $size = Payload::where('payload', '=', 'competitor')->where('payload_value', 'like', '%'.json_decode($allAdd[$i]->address)->locality.'%')->where('category', '=', json_decode($allAdd[$i]->addition_informations)->industry)->get();
             if(sizeof($exist) > 0){
               foreach($exist as $ndx){
                 $payload = new Payload();
@@ -81,28 +81,6 @@ class AccountInformationController extends APIController
     }else{
       return false;
     }
-  }
-
-  public function addToPayload($data, $counter){
-    $payload = new Payload();
-    $payload->account_id = json_decode($data[$i]->id);
-    $payload->payload = 'competitor';
-    $payload->category = json_decode($data[$i]->addition_informations)->industry;
-    $payload->payload_value = json_encode(array('locality' => json_decode($data[$i]->address)->locality, 'rank' => $counter + 1));
-    $payload->created_at = Carbon::now();
-    $payload->save();
-  }
-
-  public function getIdWithSameLocation($local){
-    $ids = AccountInformation::leftJoin('accounts as T1', 'T1.id', '=', 'account_informations.account_id')->where('T1.deleted_at', '=', NULL)->where('address', 'like', '%'.$local)->get('T1.id');
-    $payload = new Payload();
-    $payload->account_id = $ids[0]['id'];
-    $payload->payload = 'competitor';
-    $payload->category = NULL;
-    $payload->payload_value = json_decode($local)->locality;
-    $payload->created_at = Carbon::now();
-    $payload->save();
-    return $payload;
   }
 
   public function update(Request $request){
