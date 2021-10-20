@@ -28,6 +28,7 @@ Route::middleware(EnsureTokenIsValid::class)->group(function () {
       Route::post($route.'retrieve_account_info', $controller."retrieveAccountInfo");
       Route::post($route.'update', $controller."update");
       Route::post($route.'delete', $controller."delete");
+      Route::post($route.'create_with_location', $controller."createWithLocation");
       Route::get($route.'test', $controller."test");
 
       // Account
