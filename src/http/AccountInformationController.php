@@ -40,7 +40,7 @@ class AccountInformationController extends APIController
           $check = $this->checkIfAccountIdExist(json_decode($allAdd[$i]->id));
           if($check === false){
             $a=0;
-            $exist = $size = Payload::where('payload', '=', 'competitor')->where('payload_value', 'like', '%"locality":"'.json_decode($allAdd[$i]->address)->locality.'%')->where('category', '=', json_decode($allAdd[$i]->addition_informations)->industry)->get();
+            $exist = $size = Payload::where('payload', '=', 'competitor')->where('payload_value', 'like', '%"locality":"'.json_decode($allAdd[$i]->address)->locality.'"')->where('category', '=', json_decode($allAdd[$i]->addition_informations)->industry)->get();
             if(sizeof($exist) > 0){
               foreach($exist as $ndx){
                 $payload = new Payload();
