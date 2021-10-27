@@ -46,4 +46,26 @@ class MerchantController extends APIController
       return $code;
     }
   }
+
+  public function getByParams($column, $value)
+  {
+    $result = Merchant::where($column, '=', $value)->get();
+    return sizeof($result) > 0 ? $result[0] : null;
+  }
+
+  public function retrieveWithFeaturedPhotos(Request $request) {
+    $data = $request->all();
+    $this->model = new Merchant();
+    $this->retrieveDB($data);
+    $result = $this->response['data'];
+    $i = 0;
+    if(sizeof($result) > 0) {
+      foreach($result as $item) {
+        $result[$i]['featured_photos'] = app('Increment\Common\Image\Http\ImageController')->retrieveFeaturedPhotos('account_id', $item['account_id'], 'category', 'featured-photo');
+        $i++;
+      }
+    }
+    $this->response['data'] = $result;
+    return $this->response();
+  }
 }

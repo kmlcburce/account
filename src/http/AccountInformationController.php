@@ -4,6 +4,7 @@ namespace Increment\Account\Http;
 use Illuminate\Http\Request;
 use App\Http\Controllers\APIController;
 use Increment\Account\Models\AccountInformation;
+use Increment\Common\Payload\Models\Payload;
 use Carbon\Carbon;
 class AccountInformationController extends APIController
 {
@@ -14,6 +15,72 @@ class AccountInformationController extends APIController
     $this->notRequired = array(
       'sex', 'birth_date', 'cellular_number', 'address'
     );
+  }
+
+  public function createWithLocation(Request $request){
+    $data = $request->all();
+    if($this->checkIfExist($data['account_id']) == true){
+      $this->model = new AccountInformation();
+      $array = array(
+        'account_id' => $data['account_id'],
+        'address' => $data['address']
+      );
+      $this->updateDB($data);
+
+      $allAddress = AccountInformation::leftJoin('accounts as T1', 'T1.id', '=', 'account_informations.account_id')->leftJoin('merchants as T2', 'T2.account_id', '=', 'T1.id')
+        ->where('T1.deleted_at', '=', NULL)->where('account_informations.address', '!=', 'null')->where('T1.id', '!=', NULL)->get(['account_informations.address', 'T1.id', 'T2.addition_informations']);
+      $allAdd = json_decode($allAddress);
+
+      $i = 0;
+      foreach($allAdd as $key){
+        $checkLocationIfExist = app('Increment\Imarket\Location\Http\LocationController')->getLongLatDistance(json_decode($data['address'])->latitude, json_decode($data['address'])->longitude, json_decode($allAdd[$i]->address)->latitude, json_decode($allAdd[$i]->address)->longitude);
+        $distance = number_format($checkLocationIfExist * 0.62137119, 2);
+        if((int)$distance <= env('DISTANCE')){
+          // CHECK IF EXIST
+          $check = $this->checkIfAccountIdExist(json_decode($allAdd[$i]->id));
+          if($check === false){
+            $a=0;
+            $exist = $size = Payload::where('payload', '=', 'competitor')->where('payload_value', 'like', '%'.json_decode($allAdd[$i]->address)->locality.'%')->where('category', '=', json_decode($allAdd[$i]->addition_informations)->industry)->get();
+            if(sizeof($exist) > 0){
+              foreach($exist as $ndx){
+                $payload = new Payload();
+                $payload->account_id = json_decode($allAdd[$i]->id);
+                $payload->payload = 'competitor';
+                $payload->category = json_decode($allAdd[$i]->addition_informations)->industry;
+                $payload->payload_value = json_encode(array('locality' => json_decode($allAdd[$i]->address)->locality, 'rank' => (int)sizeof($size) + 1));
+                $payload->created_at = Carbon::now();
+                $payload->save();
+                $a++;
+              }
+            }else{
+              $payload = new Payload();
+              $payload->account_id = json_decode($allAdd[$i]->id);
+              $payload->payload = 'competitor';
+              $payload->category = json_decode($allAdd[$i]->addition_informations)->industry;
+              $payload->payload_value = json_encode(array('locality' => json_decode($allAdd[$i]->address)->locality, 'rank' => (int)sizeof($size) + 1));
+              $payload->created_at = Carbon::now();
+              $payload->save();
+              $a++;
+            }
+          }
+        }
+        $i++;
+      }
+      return $this->response();
+    }else{
+      $this->model = new AccountInformation();
+      $this->insertDB($data);
+      return $this->response();
+    }
+  }
+
+  public function checkIfAccountIdExist($id){
+    $count = Payload::where('account_id', '=', $id)->where('payload', '=', 'competitor')->count();
+    if($count >= 1){
+      return true;
+    }else{
+      return false;
+    }
   }
 
   public function update(Request $request){
