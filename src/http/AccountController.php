@@ -37,7 +37,7 @@ class AccountController extends APIController
      $dataAccount = array(
       'code'  => $this->generateCode(),
       'password'        => $request['password'] !== null ? Hash::make($request['password']) : "",
-      'status'          => 'NOT_VERIFIED',
+      'status'          => 'NOT_VERIFIED',  
       'email'           => $request['email'],
       'username'        => $request['username'],
       'account_type'    => $request['account_type'],
@@ -53,6 +53,8 @@ class AccountController extends APIController
 
      if($accountId){
        $this->createDetails($accountId, $request['account_type']);
+       app('Increment\Plan\Http\InvitationController')->createWithValidationParams($accountId, $request['email']);
+
        //send email verification here
        if($referralCode != null){
           app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
@@ -144,6 +146,19 @@ class AccountController extends APIController
       $result = Account::where('email', '=', $data['email'])->get();
       if(sizeof($result) > 0){
         app('App\Http\Controllers\EmailController')->resetPassword($result[0]['id']);
+        return response()->json(array('data' => true));
+      }else{
+        return response()->json(array('data' => false));
+      }
+    }
+    
+    public function requestResetViaOTP(Request $request){
+      if($this->checkAuthenticatedUser(true) == false){
+        return $this->response();
+      }
+      $data = $request->all();
+      $result = Account::where('email', '=', $data['email'])->get();
+      if(sizeof($result) > 0){
         return response()->json(array('data' => true));
       }else{
         return response()->json(array('data' => false));
