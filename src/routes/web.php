@@ -42,6 +42,7 @@ Route::middleware(EnsureTokenIsValid::class)->group(function () {
       Route::post($route.'retrieve_accounts_mezzo', $controller.'retrieveAccountMezzo');
       Route::post($route.'retrieve_account_profile', $controller.'retrieveAccountProfile');
       Route::post($route.'update', $controller."update");
+      Route::post($route.'update_pass_by_email', $controller."updatePassByEmail");
       Route::post($route.'update_verification', $controller."updateByVerification");
       Route::post($route.'delete', $controller."delete");
       Route::get($route.'test', $controller."test");

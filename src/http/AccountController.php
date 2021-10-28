@@ -232,6 +232,31 @@ class AccountController extends APIController
       }
     }
 
+
+    public function updatePassByEmail(Request $request){
+      if($this->checkAuthenticatedUser(true) == false){
+        return $this->response();
+      }
+      $data = $request->all();
+      $id = $this->retrieveByEmail($data['email']);
+      $result = Account::where('email', '=', $data['email'])->get();
+      if(sizeof($result) > 0){
+        $updateData = array(
+          'password'  => Hash::make($data['password'])
+        );
+        $updateResult = Account::where('id', '=', $id['id'])->update($updateData);
+        if($updateResult == true){
+          $this->response['data'] = true;
+          app('App\Http\Controllers\EmailController')->changedPassword($id['id']);
+          return $this->response();
+        }else{
+          return response()->json(array('data' => false));
+        }
+      }else{
+        return response()->json(array('data' => false));
+      }
+    }
+
     public function updatePasswordViaSubAccount($accountId, $password){
       $invitationPassword = $password;
       $password = Hash::make($password);
