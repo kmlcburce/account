@@ -12,6 +12,8 @@ class SubAccountController extends APIController
 {
     function __construct(){
       $this->model = new SubAccount();
+
+      $this->notRequired = array('details');
     }
 
     public function createByParams($accountId, $member, $status){
