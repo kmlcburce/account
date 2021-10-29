@@ -52,7 +52,7 @@ class PlanController extends APIController
     $planData = array(
       'topic' => 'plan',
       'title' => 'Your plan to PayHiram was '.$data['status'].'.',
-      'message' => $data['status'] == 'approved' ? "Your plan was success approved. You can now enjoyed sending proposals to our customers." : 'Please check your email for the needed requirements.',
+      'message' => $data['status'] == 'approved' ? "Your plan was successfully approved. You can now start sending proposals to our customers." : 'Please check your email for the needed requirements.',
       'to' => $data['account_id'],
       'account_id' => $data['account_id']
     );
