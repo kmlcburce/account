@@ -56,6 +56,7 @@ Route::middleware(EnsureTokenIsValid::class)->group(function () {
       Route::post($route.'retrieve_type_size', $controller.'getAccountTypeSize');
       Route::post($route.'retrieve_pending_verified', $controller.'getAccountPending');
       Route::post($route.'social_login', $controller.'loginSocialAccount');
+      Route::post($route.'create_sub_account', $controller."createSubAccount");
 
       // Account Profile
       $route = env('PACKAGE_ROUTE', '').'/account_profiles/';

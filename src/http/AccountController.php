@@ -54,12 +54,12 @@ class AccountController extends APIController
 
      if($accountId){
        $this->createDetails($accountId, $request['account_type']);
-       app('Increment\Plan\Http\InvitationController')->createWithValidationParams($accountId, $request['email']);
+       // app('Increment\Plan\Http\InvitationController')->createWithValidationParams($accountId, $request['email']);
 
-       //send email verification here
-       if($referralCode != null){
-          app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
-       }
+       // //send email verification here
+       // if($referralCode != null){
+       //    // app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
+       // }
        if(env('SUB_ACCOUNT') == true){
           $status = $request['status'];
           if($status == 'ADMIN'){
@@ -73,6 +73,55 @@ class AccountController extends APIController
        }
      }
      return $this->response();
+    }
+
+    public function createSubAccount(Request $request){
+       $request = $request->all();
+       
+       $invitationPassword = $request['password'];
+       
+       $dataAccount = array(
+        'code'  => $this->generateCode(),
+        'password'        => $request['password'] !== null ? Hash::make($request['password']) : "",
+        'status'          => isset($request['account_status']) ? $request['account_status'] :'NOT_VERIFIED',
+        'email'           => $request['email'],
+        'username'        => $request['username'],
+        'account_type'    => $request['account_type'],
+        'token'           => isset($request['token']) ? $request['token'] : null,
+        'created_at'      => Carbon::now()
+       );
+       
+       if(isset($request['token'])){
+         $dataAccount['token'] = $request['token'];
+       }
+
+       $this->model = new Account();
+       $this->insertDB($dataAccount, true);
+       $accountId = $this->response['data'];
+
+       if($accountId){
+        $this->createDetailsSubAccount($accountId, $request['account_type'], $request['first_name'], $request['last_name']);
+        app('Increment\Account\Http\SubAccountController')->createByParamsWithDetails($request['account_id'], $accountId, 'USER', $request['details']);
+        app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
+       }
+       return $this->response();
+    }
+
+    public function createDetailsSubAccount($accountId, $type, $firstName, $lastName){
+      $info = new AccountInformation();
+      $info->account_id = $accountId;
+      $info->first_name = $firstName;
+      $info->last_name = $lastName;
+      $info->created_at = Carbon::now();
+      $info->save();
+
+      $billing = new BillingInformation();
+      $billing->account_id = $accountId;
+      $billing->created_at = Carbon::now();
+      $billing->save();
+      if(env('NOTIFICATION_SETTING_FLAG') == true){
+        app('App\Http\Controllers\NotificationSettingController')->insert($accountId);
+      }
     }
 
     public function createAccount($request){

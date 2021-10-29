@@ -26,6 +26,17 @@ class SubAccountController extends APIController
       return true;
     }
 
+    public function createByParamsWithDetails($accountId, $member, $status, $details){
+      $model = new SubAccount();
+      $model->account_id = $accountId;
+      $model->member = $member;
+      $model->status = $status;
+      $model->status = $details;
+      $model->created_at = Carbon::now();
+      $model->save();
+      return true;
+    }
+
     public function retrieve(Request $request){
       $data = $request->all();
       $this->model = new SubAccount();
