@@ -694,4 +694,14 @@ class AccountController extends APIController
         ));
         return $this->response();
       }
+
+    public function checkIfAccountExist(Request $request){
+      $data = $request->all();
+      if($data['column'] === 'cellular_number'){
+        $result = Account::leftJoin('account_informations as T1', 'T1.account_id', '=', 'accounts.id')->where($data['column'], '=', $data['value'])->get('code');
+      }else{
+        $result = Account::where($data['column'], '=', $data['value'])->get('code');
+      }
+      return sizeof($result) > 0 ? $result[0] : null;
+    }
 }

@@ -57,6 +57,7 @@ Route::middleware(EnsureTokenIsValid::class)->group(function () {
       Route::post($route.'retrieve_pending_verified', $controller.'getAccountPending');
       Route::post($route.'social_login', $controller.'loginSocialAccount');
       Route::post($route.'create_sub_account', $controller."createSubAccount");
+      Route::post($route.'check_if_account_exist', $controller."checkIfAccountExist");
 
       // Account Profile
       $route = env('PACKAGE_ROUTE', '').'/account_profiles/';
