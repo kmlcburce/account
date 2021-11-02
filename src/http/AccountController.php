@@ -702,6 +702,6 @@ class AccountController extends APIController
       }else{
         $result = Account::where($data['column'], '=', $data['value'])->get('code');
       }
-      return sizeof($result) > 0 ? $result[0] : null;
+      return sizeof($result) > 0 ? $result[0] : 'null';
     }
 }
