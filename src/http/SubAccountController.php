@@ -31,7 +31,7 @@ class SubAccountController extends APIController
       $model->account_id = $accountId;
       $model->member = $member;
       $model->status = $status;
-      $model->status = $details;
+      $model->details = $details;
       $model->created_at = Carbon::now();
       $model->save();
       return true;
