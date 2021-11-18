@@ -10,6 +10,7 @@ use App\Http\Controllers\APIController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -709,18 +710,19 @@ class AccountController extends APIController
       $data = $request->all();
       $currDate = Carbon::now();
       $whereArray = array(
-        function($query)use($data){
+       array( function($query)use($data){
           if($data['type'] === 'verified'){
             $query->where('account_type', '=', 'USER')
               ->where('status', '=', 'ACCOUNT_VERIFIED');
           }else{
             $query->where('account_type', '=', $data['type']);
           }
-      });
+      }));
       $fTransaction = Account::where($whereArray)->first();
       $res = [];
       if($fTransaction !== null &&  $fTransaction['created_at'] !== null){
-        $fTransaction['created_at'] = $fTransaction['created_at']->toDateTimeString();
+        $startDate = new Carbon($fTransaction['created_at']);
+        $fTransaction['created_at'] = $startDate->toDateTimeString();
         $dates = [];
         if($data['date'] === 'yearly'){
           $tempYearly = CarbonPeriod::create($fTransaction['created_at'], $currDate->toDateTimeString());
@@ -732,38 +734,38 @@ class AccountController extends APIController
         }else if($data['date'] === 'custom'){
         }else if($data['date'] === 'last7days'){
           $startDate = $currDate->subDays(7);
-          $tempWeek = CarbonPeriod::create($startDate->toDateTimeString(), $currDate->toDateTimeString());
-          foreach ($tempWeek as $week) {
-            array_push($dates, $week->toDateString());
+          $tempDate = CarbonPeriod::create($startDate->toDateTimeString(), Carbon::now()->toDateTimeString());
+          foreach ($tempDate as $date) {
+            array_push($dates, $date->toDateString());
           }
-        }
-        else{
-          $carbon = $data['date'] === 'last_month' ? $currDate->subDays(30) : $currDate;
+        }else{
+          $month = $data['date'] === 'last_month' ? $currDate->subDays(30)->month : $currDate->month;
+          $carbon = new Carbon(new Carbon(date('Y-m-d', strtotime('now', strtotime($currDate->year.'-' . $month . '-01'))), $this->response['timezone']));
           $i=0;
-          while ($carbon < $currDate){
+          while (intval($carbon->month) == intval($month)){
             $dates[$carbon->weekOfMonth][$i] = $carbon->toDateString();
             $carbon->addDay();
             $i++;
           }
         }
         if($data['date'] === 'yearly'){
-          $temp = Ledger::select(DB::raw('sum(amount) as `amount`'), DB::raw("DATE_FORMAT(created_at, '%m-%Y') new_date"),  DB::raw('YEAR(created_at) year, MONTH(created_at) month'))
+          $temp = Account::select(DB::raw('COUNT(*) as total'),  DB::raw('YEAR(created_at) as year'))
             ->where($whereArray)
-            ->groupby('year')
+            ->groupBy(DB::raw('YEAR(created_at)'))
             ->get();
           if(sizeof($temp) > 0){
             for ($i=0; $i <= sizeof($temp)-1 ; $i++) { 
               $item = $temp[$i];
               array_push($res, array(
                 'year' => $item['year'],
-                'total_amount' => $item['amount']
+                'total_accounts' => $item['total']
               ));
             }
           }
         }else if($data['date'] === 'current_year'){
           foreach ($dates as $key) {
-            $temp = Ledger::where($whereArray)
-              ->where('created_at', 'like', '%'.$currDate->year.'-'.$key.'%')->sum('amount');
+            $temp = Account::where($whereArray)
+              ->where('created_at', 'like', '%'.$currDate->year.'-'.$key.'%')->count();
             array_push($res, array(
               'month' => $key,
               'total_amount' => $temp
@@ -771,7 +773,7 @@ class AccountController extends APIController
           }
         }else if($data['date'] === 'last_month'){
           foreach ($dates as $key) {
-            $temp = Ledger::where($whereArray)->whereBetween('created_at', [$key[array_key_first($key)], end($key)])->sum('amount');
+            $temp = Account::where($whereArray)->whereBetween('created_at', [$key[array_key_first($key)], end($key)])->count();
             array_push($res, array(
               'week' => array_search($key, $dates),
               'total_amount' => $temp
@@ -779,22 +781,24 @@ class AccountController extends APIController
           }
         }else if($data['date'] === 'current_month'){
           foreach ($dates as $key) {
-            $temp = Ledger::where($whereArray)->whereBetween('created_at', [$key[array_key_first($key)], end($key)])->sum('amount');
+            $temp = Account::where($whereArray)->whereBetween('created_at', [$key[array_key_first($key)], end($key)])->count();
             array_push($res, array(
               'week' => array_search($key, $dates),
               'total_amount' => $temp
             ));
           }
-        }else if($data['last7days']){
+        }else if($data['date'] === 'last7days'){
           $startDate = $currDate->subDays(7);
-          $temp = Ledger::where($whereArray)->whereBetween('created_at', [$startDate->toDateString(), $currDate->toDateString()])->sum('amount');
-          array_push($res, array(
-            'week' => array_search($key, $dates),
-            'total_amount' => $temp
-          ));
+          foreach ($dates as $key) {
+            $temp = Account::where($whereArray)->whereBetween('created_at', [$key, Carbon::now()->toDateTimeString()])->count();
+            array_push($res, array(
+              'date' => $key,
+              'total_amount' => $temp
+            ));
+          }
         }
         $this->response['data'] = $res;
-      } 
+      }
       return $this->response();
     }
 }
