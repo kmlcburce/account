@@ -6,6 +6,7 @@ $controller = 'Increment\Account\Http\AccountController@';
 Route::post($route.'create', $controller."create");
 Route::post($route.'request_reset',  $controller."requestReset");
 Route::post($route.'request_reset_via_otp',  $controller."requestResetViaOTP");
+Route::post($route.'retrieve_account_dashboard',  $controller."retrieveDashboardAccounts");
 Route::post($route.'update_password', $controller.'updatePassword');
 Route::post($route.'social_create', $controller.'createSocialAccount');
 Route::post($route.'social_authenticate', $controller.'socialAuthenticate');

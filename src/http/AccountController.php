@@ -704,4 +704,97 @@ class AccountController extends APIController
       }
       return sizeof($result) > 0 ? $result[0] : 'null';
     }
+
+    public function retrieveDashboardAccounts(Request $request){
+      $data = $request->all();
+      $currDate = Carbon::now();
+      $whereArray = array(
+        function($query)use($data){
+          if($data['type'] === 'verified'){
+            $query->where('account_type', '=', 'USER')
+              ->where('status', '=', 'ACCOUNT_VERIFIED');
+          }else{
+            $query->where('account_type', '=', $data['type']);
+          }
+      });
+      $fTransaction = Account::where($whereArray)->first();
+      $res = [];
+      if($fTransaction !== null &&  $fTransaction['created_at'] !== null){
+        $fTransaction['created_at'] = $fTransaction['created_at']->toDateTimeString();
+        $dates = [];
+        if($data['date'] === 'yearly'){
+          $tempYearly = CarbonPeriod::create($fTransaction['created_at'], $currDate->toDateTimeString());
+          foreach ($tempYearly as $year) {
+            array_push($dates, $year->toDateString());
+          }
+        }else if($data['date'] === 'current_year'){
+          $dates = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+        }else if($data['date'] === 'custom'){
+        }else if($data['date'] === 'last7days'){
+          $startDate = $currDate->subDays(7);
+          $tempWeek = CarbonPeriod::create($startDate->toDateTimeString(), $currDate->toDateTimeString());
+          foreach ($tempWeek as $week) {
+            array_push($dates, $week->toDateString());
+          }
+        }
+        else{
+          $carbon = $data['date'] === 'last_month' ? $currDate->subDays(30) : $currDate;
+          $i=0;
+          while ($carbon < $currDate){
+            $dates[$carbon->weekOfMonth][$i] = $carbon->toDateString();
+            $carbon->addDay();
+            $i++;
+          }
+        }
+        if($data['date'] === 'yearly'){
+          $temp = Ledger::select(DB::raw('sum(amount) as `amount`'), DB::raw("DATE_FORMAT(created_at, '%m-%Y') new_date"),  DB::raw('YEAR(created_at) year, MONTH(created_at) month'))
+            ->where($whereArray)
+            ->groupby('year')
+            ->get();
+          if(sizeof($temp) > 0){
+            for ($i=0; $i <= sizeof($temp)-1 ; $i++) { 
+              $item = $temp[$i];
+              array_push($res, array(
+                'year' => $item['year'],
+                'total_amount' => $item['amount']
+              ));
+            }
+          }
+        }else if($data['date'] === 'current_year'){
+          foreach ($dates as $key) {
+            $temp = Ledger::where($whereArray)
+              ->where('created_at', 'like', '%'.$currDate->year.'-'.$key.'%')->sum('amount');
+            array_push($res, array(
+              'month' => $key,
+              'total_amount' => $temp
+            ));
+          }
+        }else if($data['date'] === 'last_month'){
+          foreach ($dates as $key) {
+            $temp = Ledger::where($whereArray)->whereBetween('created_at', [$key[array_key_first($key)], end($key)])->sum('amount');
+            array_push($res, array(
+              'week' => array_search($key, $dates),
+              'total_amount' => $temp
+            ));
+          }
+        }else if($data['date'] === 'current_month'){
+          foreach ($dates as $key) {
+            $temp = Ledger::where($whereArray)->whereBetween('created_at', [$key[array_key_first($key)], end($key)])->sum('amount');
+            array_push($res, array(
+              'week' => array_search($key, $dates),
+              'total_amount' => $temp
+            ));
+          }
+        }else if($data['last7days']){
+          $startDate = $currDate->subDays(7);
+          $temp = Ledger::where($whereArray)->whereBetween('created_at', [$startDate->toDateString(), $currDate->toDateString()])->sum('amount');
+          array_push($res, array(
+            'week' => array_search($key, $dates),
+            'total_amount' => $temp
+          ));
+        }
+        $this->response['data'] = $res;
+      } 
+      return $this->response();
+    }
 }
