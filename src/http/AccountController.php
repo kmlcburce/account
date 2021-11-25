@@ -719,7 +719,8 @@ class AccountController extends APIController
           }
       }));
       $fTransaction = Account::where($whereArray)->first();
-      $res = [];
+      $resDates = [];
+      $resData = [];
       if($fTransaction !== null &&  $fTransaction['created_at'] !== null){
         $startDate = new Carbon($fTransaction['created_at']);
         $fTransaction['created_at'] = $startDate->toDateTimeString();
@@ -756,48 +757,41 @@ class AccountController extends APIController
           if(sizeof($temp) > 0){
             for ($i=0; $i <= sizeof($temp)-1 ; $i++) { 
               $item = $temp[$i];
-              array_push($res, array(
-                'year' => $item['year'],
-                'total_accounts' => $item['total']
-              ));
+              array_push($resDates, $item['year']);
+              array_push($resData, $item['total']);
             }
           }
         }else if($data['date'] === 'current_year'){
           foreach ($dates as $key) {
             $temp = Account::where($whereArray)
               ->where('created_at', 'like', '%'.$currDate->year.'-'.$key.'%')->count();
-            array_push($res, array(
-              'month' => $key,
-              'total_amount' => $temp
-            ));
+            array_push($resDates, $key);
+            array_push($resData, $temp);
           }
         }else if($data['date'] === 'last_month'){
           foreach ($dates as $key) {
             $temp = Account::where($whereArray)->whereBetween('created_at', [$key[array_key_first($key)], end($key)])->count();
-            array_push($res, array(
-              'week' => array_search($key, $dates),
-              'total_amount' => $temp
-            ));
+            array_push($resDates, $key);
+            array_push($resData, $temp);
           }
         }else if($data['date'] === 'current_month'){
           foreach ($dates as $key) {
             $temp = Account::where($whereArray)->whereBetween('created_at', [$key[array_key_first($key)], end($key)])->count();
-            array_push($res, array(
-              'week' => array_search($key, $dates),
-              'total_amount' => $temp
-            ));
+            array_push($resDates, array_search($key, $dates));
+            array_push($resData, $temp);
           }
         }else if($data['date'] === 'last7days'){
           $startDate = $currDate->subDays(7);
           foreach ($dates as $key) {
             $temp = Account::where($whereArray)->whereBetween('created_at', [$key, Carbon::now()->toDateTimeString()])->count();
-            array_push($res, array(
-              'date' => $key,
-              'total_amount' => $temp
-            ));
+            array_push($resDates, $key);
+            array_push($resData, $temp);
           }
         }
-        $this->response['data'] = $res;
+        $this->response['data'] = array(
+          'dates' => $resDates,
+          'result' => $resData
+        );
       }
       return $this->response();
     }
