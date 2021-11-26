@@ -9,6 +9,8 @@ use Carbon\Carbon;
 class AccountInformationController extends APIController
 {
 
+
+  public $cacheController = 'Increment\Common\Cache\Http\CacheController';
   function __construct(){
     $this->localization();
     $this->model = new AccountInformation();
@@ -40,7 +42,7 @@ class AccountInformationController extends APIController
           $check = $this->checkIfAccountIdExist(json_decode($allAdd[$i]->id));
           if($check === false){
             $a=0;
-            $exist = $size = Payload::where('payload', '=', 'competitor')->where('payload_value', 'like', '%'.json_decode($allAdd[$i]->address)->locality.'%')->where('category', '=', json_decode($allAdd[$i]->addition_informations)->industry)->get();
+            $exist = $size = Payload::where('payload', '=', 'competitor')->where('payload_value', 'like', '%"locality":"'.json_decode($allAdd[$i]->address)->locality.'"')->where('category', '=', json_decode($allAdd[$i]->addition_informations)->industry)->get();
             if(sizeof($exist) > 0){
               foreach($exist as $ndx){
                 $payload = new Payload();
@@ -88,12 +90,52 @@ class AccountInformationController extends APIController
     if($this->checkIfExist($data['account_id']) == true){
       $this->model = new AccountInformation();
       $this->updateDB($data);
+      app($this->cacheController)->delete('user_'.$data['account_id']);
+      app($this->cacheController)->delete('account_informations_'.$data['account_id']);
+      app($this->cacheController)->delete('account_details_'.$data['account_id']);
       return $this->response();
     }else{
       $this->model = new AccountInformation();
       $this->insertDB($data);
+      app($this->cacheController)->delete('user_'.$data['account_id']);
+      app($this->cacheController)->delete('account_informations_'.$data['account_id']);
+      app($this->cacheController)->delete('account_details_'.$data['account_id']);
       return $this->response();
     }
+  }
+
+  public function retrieve(Request $request){
+    $data = $request->all();
+    $accountId = null;
+    $limit = null;
+    $offset = null;
+
+    foreach ($data['condition'] as $key) {
+      if($key['column'] === 'account_id'){
+        $accountId = $key['value'];
+      }
+    }
+
+    if(isset($data['limit'])){
+      $limit = intval($data['limit']);
+    }
+
+
+    if(isset($data['offset'])){
+      $offset = intval($data['offset']);
+    }
+
+    $result = app($this->cacheController)->retrieve('account_informations_'.$accountId, $offset, $limit);
+
+    if(app($this->cacheController)->retrieveCondition($result, $offset) == true){
+      $this->response['data'] = $result;
+    }else{
+      $this->model = new AccountInformation();
+      $this->retrieveDB($data);
+      app($this->cacheController)->insert('account_informations_'.$accountId, $this->response['data']);
+    }
+
+    return $this->response();
   }
 
   public function retrieveAccountInfo(Request $request){
