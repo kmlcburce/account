@@ -79,7 +79,7 @@ class PlanController extends APIController
         $i++;
       }
     }
-    $this->response['size'] = sizeof($result);
+    $this->response['size'] = Plan::where('deleted_at', '=', null)->count();;
     return $this->response();
   }
 
