@@ -79,6 +79,7 @@ class PlanController extends APIController
         $i++;
       }
     }
+    $this->response['size'] = sizeof($result);
     return $this->response();
   }
 
