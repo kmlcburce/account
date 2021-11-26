@@ -225,6 +225,8 @@ class AccountController extends APIController
           $details = 'you are now an official Payhiram partner. Enjoy earning everyday with the maximum amount of 500,000 pesos. We are happy and excited to be part of your source of income.';
         }else if($data['status'] == 'VERIFIED'){
           $details = 'your email has been verified. To complete your registration, we need a little more information including the completion of your profile details.';
+        }else if($data['status'] == 'BLOCKED'){
+          $details = `your our account has been blocked. We've detected suspicious activity on your Payhiram Account and have locked it as a security precaution. If you think this is a mistake, please contact payhiramph@gmail.com.`;
         }
         app('App\Http\Controllers\EmailController')->verification_status($data['id'], $details);
       }
