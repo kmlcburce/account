@@ -18,6 +18,7 @@ class AccountController extends APIController
 {
 
   public $accountCardController = 'App\Http\Controllers\AccountCardController';
+  public $cacheController = 'Increment\Common\Cache\Http\CacheController';
 
     function __construct(){
       $this->model = new Account();
@@ -231,6 +232,9 @@ class AccountController extends APIController
         }
         app('App\Http\Controllers\EmailController')->verification_status($data['id'], $details);
       }
+
+      app($this->cacheController)->delete('account_details_'.$data['id']);
+      app($this->cacheController)->delete('user_'.$data['id']);
       return $this->response();
     }
 
