@@ -212,6 +212,7 @@ class AccountController extends APIController
         'status' => $data['status']
       ));
       $this->response['data'] = $result ? true : false;
+      $details = null;
       if($this->response['data'] == true){
         if($data['status'] == 'ACCOUNT_VERIFIED'){
           $details = 'your account is already verified. You can now start creating request but if you want to earn while using Payhiram, Be our Partner. What are you waiting for? Apply Now!';
