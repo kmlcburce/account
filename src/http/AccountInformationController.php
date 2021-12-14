@@ -140,13 +140,11 @@ class AccountInformationController extends APIController
 
   public function retrieveAccountInfo(Request $request){
     $data = $request->all();
-    $result = AccountInformation::where($data['condition'][0]['column'], $data['condition'][0]['clause'], $data['condition'][0]['value'])->get();
+    $this->model = new AccountInformation();
+    $this->retrieveDB($data);
+    $result = $this->response['data'];
     $i = 0;
     foreach ($result as $key) {
-      $account = app('Increment\Account\Http\AccountController')->getAllowedData($data['condition'][0]['value']);
-      $result[$i]['profile'] = app('Increment\Account\Http\AccountProfileController')->getByParamsWithColumns($data['condition'][0]['value'], ['url', 'id']);
-      $result[$i]['username'] = $account['username'];
-      $result[$i]['status'] = $account['status'];
       $result[$i]['rating'] = app('Increment\Common\Rating\Http\RatingController')->getRatingByPayload('account', $result[$i]['account_id']);
     }
     $this->response['data'] = $result;
