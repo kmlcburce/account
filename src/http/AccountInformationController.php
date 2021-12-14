@@ -140,15 +140,41 @@ class AccountInformationController extends APIController
 
   public function retrieveAccountInfo(Request $request){
     $data = $request->all();
-    $this->model = new AccountInformation();
-    $this->retrieveDB($data);
-    $result = $this->response['data'];
-    $i = 0;
-    foreach ($result as $key) {
-      $result[$i]['rating'] = app('Increment\Common\Rating\Http\RatingController')->getRatingByPayload('account', $result[$i]['account_id']);
-      $i++;
+    $accountId = null;
+    $limit = null;
+    $offset = null;
+
+    foreach ($data['condition'] as $key) {
+      if($key['column'] === 'account_id'){
+        $accountId = $key['value'];
+      }
     }
-    $this->response['data'] = $result;
+
+    if(isset($data['limit'])){
+      $limit = intval($data['limit']);
+    }
+
+
+    if(isset($data['offset'])){
+      $offset = intval($data['offset']);
+    }
+
+    $result = app($this->cacheController)->retrieve('account_informations_'.$accountId, $offset, $limit);
+
+    if(app($this->cacheController)->retrieveCondition($result, $offset) == true){
+      $this->response['data'] = $result;
+    }else{
+      $this->model = new AccountInformation();
+      $this->retrieveDB($data);
+      $result = $this->response['data'];
+      $i = 0;
+      foreach ($result as $key) {
+        $result[$i]['rating'] = app('Increment\Common\Rating\Http\RatingController')->getRatingByPayload('account', $result[$i]['account_id']);
+        $i++;
+      }
+      $this->response['data'] = $result;
+      app($this->cacheController)->insert('account_informations_'.$accountId, $this->response['data']);
+    }
 
     return $this->response();
   }
