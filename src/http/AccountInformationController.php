@@ -146,6 +146,7 @@ class AccountInformationController extends APIController
     $i = 0;
     foreach ($result as $key) {
       $result[$i]['rating'] = app('Increment\Common\Rating\Http\RatingController')->getRatingByPayload('account', $result[$i]['account_id']);
+      $i++;
     }
     $this->response['data'] = $result;
 
