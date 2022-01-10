@@ -249,15 +249,17 @@ class AccountController extends APIController
 
     public function retrieveAccountAdmin(Request $request){
       $data = $request->all();
+      $con = $data['condition'];
       $this->model = new Account();
       $result = $this->retrieveDB($data);
+      $size = Account::where($con[0]['column'], $con[0]['clause'], $con[0]['value'])->where($con[1]['column'], $con[1]['clause'], $con[1]['value'])->get();
       if(sizeof($result) > 0){
         $i = 0;
         foreach ($result as $key) {
           $result[$i] = $this->retrieveDetailsOnLogin($result[$i]);
           $i++;
         }
-        return response()->json(array('data' => $result));
+        return response()->json(array('data' => $result, 'size' => sizeof($size)));
       }else{
         return $this->response();
       }
@@ -506,14 +508,22 @@ class AccountController extends APIController
         ->limit($data['limit'])
         ->offset($data['offset'])
         ->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])
+        ->get(['accounts.*', 'T1.first_name', 'T1.last_name', 'cellular_number']);
+      
+      $size = Account::leftJoin('account_informations as T1', 'T1.account_id', '=', 'accounts.id')
+        ->where($con[0]['column'], $con[0]['clause'], $con[0]['value'])
+        ->where('account_type', '!=', 'ADMIN')
+        ->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])
         ->get();
+
       for ($i=0; $i <= sizeof($result)-1 ; $i++) { 
         $item = $result[$i];
-        $result[$i]['total_bookings'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalReservationsByAccount($item['account_id']);
-        $result[$i]['total_spent'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalSpentByAcccount($item['account_id']);
+        $result[$i]['total_bookings'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalReservationsByAccount($item['id']);
+        $result[$i]['total_spent'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalSpentByAcccount($item['id']);
         $result[$i]['name'] = $item['first_name'].' '.$item['last_name'];
       }
       $this->response['data'] = $result;
+      $this->response['size'] = sizeof($size);
       return $this->response();
     }
 
