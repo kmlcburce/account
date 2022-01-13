@@ -545,6 +545,11 @@ class AccountController extends APIController
       return (sizeof($result) > 0) ? $result[0] : null;
     }
 
+    public function getCodeById($id){
+      $result = Account::where('id', '=', $id)->get();
+      return (sizeof($result) > 0) ? $result[0]['code'] : null;
+    }
+
     public function getAccountTypeSize(){
       $this->response['data'] = array(
         'total_users' => Account::count(),
