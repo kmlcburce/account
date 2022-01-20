@@ -451,6 +451,11 @@ class AccountController extends APIController
       return sizeof($result) > 0 ? $result[0] : null;
     }
 
+    public function retrieveByPhone($number){
+      $result = AccountInformation::where('cellular_number', '=', $number)->get();
+      return sizeof($result) > 0 ? $result[0] : null;
+    }
+
     public function updatePassword(Request $request){ 
       $data = $request->all();
       $data['password'] = Hash::make($data['password']);
