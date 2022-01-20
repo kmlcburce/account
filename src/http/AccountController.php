@@ -152,7 +152,7 @@ class AccountController extends APIController
         $this->createDetails($accountId, $request['account_type']);
         //send email verification here
         if($referralCode != null){
-           app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
+          app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
         }
         if(env('SUB_ACCOUNT') == true){
            $status = $request['status'];
@@ -448,6 +448,11 @@ class AccountController extends APIController
 
     public function retrieveByEmail($email){
       $result = Account::where('email', '=', $email)->get();
+      return sizeof($result) > 0 ? $result[0] : null;
+    }
+
+    public function retrieveByPhone($number){
+      $result = AccountInformation::where('cellular_number', '=', $number)->get();
       return sizeof($result) > 0 ? $result[0] : null;
     }
 
