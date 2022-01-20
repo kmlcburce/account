@@ -152,7 +152,7 @@ class AccountController extends APIController
         $this->createDetails($accountId, $request['account_type']);
         //send email verification here
         if($referralCode != null){
-           app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
+          app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
         }
         if(env('SUB_ACCOUNT') == true){
            $status = $request['status'];
