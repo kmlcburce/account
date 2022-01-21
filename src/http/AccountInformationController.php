@@ -15,7 +15,7 @@ class AccountInformationController extends APIController
     $this->localization();
     $this->model = new AccountInformation();
     $this->notRequired = array(
-      'sex', 'birth_date', 'cellular_number', 'address'
+      'sex', 'birth_date', 'cellular_number', 'address', 'middle_name', 'last_name'
     );
   }
 
@@ -204,5 +204,14 @@ class AccountInformationController extends APIController
   public function getAllowedData($accountId){
     $result = AccountInformation::where('id', '=', $accountId)->get(['first_name', 'last_name', 'middle_name', 'sex']);
     return sizeof($result) > 0 ? $result[0] : null;
+  }
+
+  public function createByParams($params){
+    $this->model = new AccountInformation();
+    return $this->insertDB($params);
+  }
+  
+  public function updateByAccountId($accountId, $params){
+    return AccountInformation::where('account_id', '=', $accountId)->update($params);
   }
 }
