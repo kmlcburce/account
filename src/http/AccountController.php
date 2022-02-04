@@ -177,9 +177,11 @@ class AccountController extends APIController
       return $this->response();
      }
 
-    public function createDetails($accountId, $type){
+    public function createDetails($accountId, $type, $firstName = null, $lastName = null){
       $info = new AccountInformation();
       $info->account_id = $accountId;
+      $info->first_name = $firstName;
+      $info->last_name = $lastName;
       $info->created_at = Carbon::now();
       $info->save();
 
