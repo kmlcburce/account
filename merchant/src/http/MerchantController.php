@@ -36,6 +36,14 @@ class MerchantController extends APIController
     }
   }
 
+  public function createByParams($data)
+  {
+    $data['code'] = $this->generateCode();
+    $data['status'] = 'not_verified';
+    $data['created_at'] = Carbon::now();
+    Merchant::insert($data);
+  }
+
   public function generateCode()
   {
     $code = 'mer_' . substr(str_shuffle($this->codeSource), 0, 60);
