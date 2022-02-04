@@ -35,7 +35,7 @@ class AccountController extends APIController
 
     public function create(Request $request){
      $request = $request->all();
-     $referralCode = $request['referral_code'];
+     $referralCode = isset($request['referral_code']) ? $request['referral_code'] : null;
      $invitationPassword = $request['password'];
      $dataAccount = array(
       'code'  => $this->generateCode(),
