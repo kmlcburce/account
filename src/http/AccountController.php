@@ -547,6 +547,11 @@ class AccountController extends APIController
       return (sizeof($result) > 0) ? $result[0] : null;
     }
 
+    public function getByTokenWithColumns($token, $columns){
+      $result = Account::where('token', 'like', '%'.$token.'%')->get($columns);
+      return (sizeof($result) > 0) ? $result[0] : null;
+    }
+    
     public function getAccountIdByParamsWithColumns($code, $columns){
       $result = Account::where('code', '=', $code)->get($columns);
       return (sizeof($result) > 0) ? $result[0] : null;
