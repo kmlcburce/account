@@ -35,7 +35,7 @@ class AccountController extends APIController
 
     public function create(Request $request){
      $request = $request->all();
-     $referralCode = $request['referral_code'];
+     $referralCode = isset($request['referral_code']) ? $request['referral_code'] : null;
      $invitationPassword = $request['password'];
      $dataAccount = array(
       'code'  => $this->generateCode(),
@@ -55,14 +55,22 @@ class AccountController extends APIController
      $accountId = $this->response['data'];
 
      if($accountId){
-       $this->createDetails($accountId, $request['account_type']);
-       // app('Increment\Plan\Http\InvitationController')->createWithValidationParams($accountId, $request['email']);
+        $firstName = isset($request['first_name']) ? $request['first_name'] : null;
+        $lastName = isset($request['last_name']) ? $request['last_name'] : null;
+        $this->createDetails($accountId, $request['account_type'], $firstName, $lastName);
+        // app('Increment\Plan\Http\InvitationController')->createWithValidationParams($accountId, $request['email']);
 
-       // //send email verification here
-       // if($referralCode != null){
-       //    // app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
-       // }
-       if(env('SUB_ACCOUNT') == true){
+        // //send email verification here
+        // if($referralCode != null){
+        //    // app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
+        // }
+        if(isset($request['merchant'])){
+          app('\Increment\Account\Merchant\Http\MerchantController')->createByParams(array(
+            'account_id' => $accountId,
+            'name'  => $request['merchant']
+          ));
+        }
+        if(env('SUB_ACCOUNT') == true){
           $status = $request['status'];
           if($status == 'ADMIN'){
             app('Increment\Account\Http\SubAccountController')->createByParams($accountId, $accountId, $status);
@@ -72,7 +80,7 @@ class AccountController extends APIController
             app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
           }
           app('App\Http\Controllers\EmailController')->verification($accountId);
-       }
+        }
      }
      return $this->response();
     }
@@ -169,9 +177,11 @@ class AccountController extends APIController
       return $this->response();
      }
 
-    public function createDetails($accountId, $type){
+    public function createDetails($accountId, $type, $firstName = null, $lastName = null){
       $info = new AccountInformation();
       $info->account_id = $accountId;
+      $info->first_name = $firstName;
+      $info->last_name = $lastName;
       $info->created_at = Carbon::now();
       $info->save();
 
