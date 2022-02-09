@@ -802,4 +802,9 @@ class AccountController extends APIController
       }
       return $this->response();
     }
+
+    public function retrieveAccountInfo($account_id){
+      $result = Account::leftJoin('account_informations as T1', 'T1.account_id', '=', 'acounts.id')->first();
+      return $result;
+    }
 }
