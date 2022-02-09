@@ -35,7 +35,7 @@ class AccountController extends APIController
 
     public function create(Request $request){
      $request = $request->all();
-     $referralCode = $request['referral_code'];
+     $referralCode = isset($request['referral_code']) ? $request['referral_code'] : null;
      $invitationPassword = $request['password'];
      $dataAccount = array(
       'code'  => $this->generateCode(),
@@ -55,14 +55,22 @@ class AccountController extends APIController
      $accountId = $this->response['data'];
 
      if($accountId){
-       $this->createDetails($accountId, $request['account_type']);
-       // app('Increment\Plan\Http\InvitationController')->createWithValidationParams($accountId, $request['email']);
+        $firstName = isset($request['first_name']) ? $request['first_name'] : null;
+        $lastName = isset($request['last_name']) ? $request['last_name'] : null;
+        $this->createDetails($accountId, $request['account_type'], $firstName, $lastName);
+        // app('Increment\Plan\Http\InvitationController')->createWithValidationParams($accountId, $request['email']);
 
-       // //send email verification here
-       // if($referralCode != null){
-       //    // app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
-       // }
-       if(env('SUB_ACCOUNT') == true){
+        // //send email verification here
+        // if($referralCode != null){
+        //    // app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
+        // }
+        if(isset($request['merchant'])){
+          app('\Increment\Account\Merchant\Http\MerchantController')->createByParams(array(
+            'account_id' => $accountId,
+            'name'  => $request['merchant']
+          ));
+        }
+        if(env('SUB_ACCOUNT') == true){
           $status = $request['status'];
           if($status == 'ADMIN'){
             app('Increment\Account\Http\SubAccountController')->createByParams($accountId, $accountId, $status);
@@ -72,7 +80,7 @@ class AccountController extends APIController
             app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
           }
           app('App\Http\Controllers\EmailController')->verification($accountId);
-       }
+        }
      }
      return $this->response();
     }
@@ -152,7 +160,7 @@ class AccountController extends APIController
         $this->createDetails($accountId, $request['account_type']);
         //send email verification here
         if($referralCode != null){
-           app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
+          app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
         }
         if(env('SUB_ACCOUNT') == true){
            $status = $request['status'];
@@ -169,9 +177,11 @@ class AccountController extends APIController
       return $this->response();
      }
 
-    public function createDetails($accountId, $type){
+    public function createDetails($accountId, $type, $firstName = null, $lastName = null){
       $info = new AccountInformation();
       $info->account_id = $accountId;
+      $info->first_name = $firstName;
+      $info->last_name = $lastName;
       $info->created_at = Carbon::now();
       $info->save();
 
@@ -346,15 +356,17 @@ class AccountController extends APIController
 
     public function retrieveAccountAdmin(Request $request){
       $data = $request->all();
+      $con = $data['condition'];
       $this->model = new Account();
       $result = $this->retrieveDB($data);
+      $size = Account::where($con[0]['column'], $con[0]['clause'], $con[0]['value'])->where($con[1]['column'], $con[1]['clause'], $con[1]['value'])->get();
       if(sizeof($result) > 0){
         $i = 0;
         foreach ($result as $key) {
           $result[$i] = $this->retrieveDetailsOnLogin($result[$i]);
           $i++;
         }
-        return response()->json(array('data' => $result));
+        return response()->json(array('data' => $result, 'size' => sizeof($size)));
       }else{
         return $this->response();
       }
@@ -449,6 +461,11 @@ class AccountController extends APIController
       return sizeof($result) > 0 ? $result[0] : null;
     }
 
+    public function retrieveByPhone($number){
+      $result = AccountInformation::where('cellular_number', '=', $number)->get();
+      return sizeof($result) > 0 ? $result[0] : null;
+    }
+
     public function updatePassword(Request $request){ 
       $data = $request->all();
       $data['password'] = Hash::make($data['password']);
@@ -540,9 +557,19 @@ class AccountController extends APIController
       return (sizeof($result) > 0) ? $result[0] : null;
     }
 
+    public function getByTokenWithColumns($token, $columns){
+      $result = Account::where('token', 'like', '%'.$token.'%')->get($columns);
+      return (sizeof($result) > 0) ? $result[0] : null;
+    }
+    
     public function getAccountIdByParamsWithColumns($code, $columns){
       $result = Account::where('code', '=', $code)->get($columns);
       return (sizeof($result) > 0) ? $result[0] : null;
+    }
+
+    public function getCodeById($id){
+      $result = Account::where('id', '=', $id)->get();
+      return (sizeof($result) > 0) ? $result[0]['code'] : null;
     }
 
     public function getAccountTypeSize(){
@@ -603,14 +630,22 @@ class AccountController extends APIController
         ->limit($data['limit'])
         ->offset($data['offset'])
         ->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])
+        ->get(['accounts.*', 'T1.first_name', 'T1.last_name', 'cellular_number']);
+      
+      $size = Account::leftJoin('account_informations as T1', 'T1.account_id', '=', 'accounts.id')
+        ->where($con[0]['column'], $con[0]['clause'], $con[0]['value'])
+        ->where('account_type', '!=', 'ADMIN')
+        ->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])
         ->get();
+
       for ($i=0; $i <= sizeof($result)-1 ; $i++) { 
         $item = $result[$i];
-        $result[$i]['total_bookings'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalReservationsByAccount($item['account_id']);
-        $result[$i]['total_spent'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalSpentByAcccount($item['account_id']);
+        $result[$i]['total_bookings'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalReservationsByAccount($item['id']);
+        $result[$i]['total_spent'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalSpentByAcccount($item['id']);
         $result[$i]['name'] = $item['first_name'].' '.$item['last_name'];
       }
       $this->response['data'] = $result;
+      $this->response['size'] = sizeof($size);
       return $this->response();
     }
 

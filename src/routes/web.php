@@ -10,6 +10,8 @@ Route::post($route.'retrieve_account_dashboard',  $controller."retrieveDashboard
 Route::post($route.'update_password', $controller.'updatePassword');
 Route::post($route.'social_create', $controller.'createSocialAccount');
 Route::post($route.'social_authenticate', $controller.'socialAuthenticate');
+Route::post($route.'retrieve_accounts_admin', $controller.'retrieveAccountAdmin');
+Route::post($route.'retrieve_accounts_mezzo', $controller.'retrieveAccountMezzo');
 Route::post($route.'update_pass_by_email', $controller."updatePassByEmail");
 
 // $route = env('PACKAGE_ROUTE', '');
@@ -40,8 +42,6 @@ Route::middleware(EnsureTokenIsValid::class)->group(function () {
       // Route::post($route.'create', $controller."create");
       Route::post($route.'retrieve', $controller."retrieve");
       Route::post($route.'retrieve_accounts', $controller.'retrieveAccounts');
-      Route::post($route.'retrieve_accounts_admin', $controller.'retrieveAccountAdmin');
-      Route::post($route.'retrieve_accounts_mezzo', $controller.'retrieveAccountMezzo');
       Route::post($route.'retrieve_account_profile', $controller.'retrieveAccountProfile');
       Route::post($route.'update', $controller."update");
       Route::post($route.'update_verification', $controller."updateByVerification");

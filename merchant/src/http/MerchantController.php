@@ -36,6 +36,14 @@ class MerchantController extends APIController
     }
   }
 
+  public function createByParams($data)
+  {
+    $data['code'] = $this->generateCode();
+    $data['status'] = 'not_verified';
+    $data['created_at'] = Carbon::now();
+    Merchant::insert($data);
+  }
+
   public function generateCode()
   {
     $code = 'mer_' . substr(str_shuffle($this->codeSource), 0, 60);
@@ -56,16 +64,39 @@ class MerchantController extends APIController
   public function retrieveWithFeaturedPhotos(Request $request) {
     $data = $request->all();
     $this->model = new Merchant();
-    $this->retrieveDB($data);
-    $result = $this->response['data'];
-    $i = 0;
-    if(sizeof($result) > 0) {
-      foreach($result as $item) {
-        $result[$i]['featured_photos'] = app('Increment\Common\Image\Http\ImageController')->retrieveFeaturedPhotos('account_id', $item['account_id'], 'category', 'featured-photo');
-        $i++;
+    if(isset($data['masses'])) {
+      $latitude = $data['masses']['latitude'];
+      $longitude = $data['masses']['longitude'];
+      $this->retrieveDB($data);
+      $res= $this->response['data'];
+      $l = 0;
+      $result = array();
+      if(sizeof($res) > 0) {
+        foreach($res as $item) {
+          $address = json_decode($res[$l]['address']);
+          $lat = $address->latitude;
+          $long = $address->longitude;
+          $distance = app('Increment\Imarket\Location\Http\LocationController')->getLongLatDistance($latitude, $longitude, $lat, $long);
+          $res[$l]['distance'] = $distance;
+          if($distance <= 1) {
+            array_push($result, $res[$l]);
+          }
+          $l++;
+        }
       }
+      $this->response['data'] = $result;
+    } else {
+      $this->retrieveDB($data);
+      $result = $this->response['data'];
+      $i = 0;
+      if(sizeof($result) > 0) {
+        foreach($result as $item) {
+          $result[$i]['featured_photos'] = app('Increment\Common\Image\Http\ImageController')->retrieveFeaturedPhotos('account_id', $item['account_id'], 'category', 'featured-photo');
+          $i++;
+        }
+      }
+      $this->response['data'] = $result;
     }
-    $this->response['data'] = $result;
     return $this->response();
   }
 }
