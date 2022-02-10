@@ -66,6 +66,7 @@ class MerchantController extends APIController
       if(sizeof($res) > 0) {
         foreach($res as $item) {
           $address = json_decode($res[$l]['address']);
+          dd($address);
           $lat = $address->latitude;
           $long = $address->longitude;
           $distance = app('Increment\Imarket\Location\Http\LocationController')->getLongLatDistance($latitude, $longitude, $lat, $long);
