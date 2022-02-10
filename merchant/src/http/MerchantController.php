@@ -57,8 +57,8 @@ class MerchantController extends APIController
     $data = $request->all();
     $this->model = new Merchant();
     if(isset($data['masses'])) {
-      $latitude = $data['masses']->latitude;
-      $longitude = $data['masses']->longitude;
+      $latitude = $data['masses']['latitude'];
+      $longitude = $data['masses']['longitude'];
       $this->retrieveDB($data);
       $res= $this->response['data'];
       $l = 0;
