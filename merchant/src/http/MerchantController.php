@@ -36,14 +36,6 @@ class MerchantController extends APIController
     }
   }
 
-  public function createByParams($data)
-  {
-    $data['code'] = $this->generateCode();
-    $data['status'] = 'not_verified';
-    $data['created_at'] = Carbon::now();
-    Merchant::insert($data);
-  }
-
   public function generateCode()
   {
     $code = 'mer_' . substr(str_shuffle($this->codeSource), 0, 60);
@@ -74,7 +66,6 @@ class MerchantController extends APIController
       if(sizeof($res) > 0) {
         foreach($res as $item) {
           $address = json_decode($res[$l]['address']);
-          dd($address);
           $lat = $address->latitude;
           $long = $address->longitude;
           $distance = app('Increment\Imarket\Location\Http\LocationController')->getLongLatDistance($latitude, $longitude, $lat, $long);
