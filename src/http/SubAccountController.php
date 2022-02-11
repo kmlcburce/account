@@ -12,6 +12,8 @@ class SubAccountController extends APIController
 {
     function __construct(){
       $this->model = new SubAccount();
+
+      $this->notRequired = array('details');
     }
 
     public function createByParams($accountId, $member, $status){
@@ -19,6 +21,17 @@ class SubAccountController extends APIController
       $model->account_id = $accountId;
       $model->member = $member;
       $model->status = $status;
+      $model->created_at = Carbon::now();
+      $model->save();
+      return true;
+    }
+
+    public function createByParamsWithDetails($accountId, $member, $status, $details){
+      $model = new SubAccount();
+      $model->account_id = $accountId;
+      $model->member = $member;
+      $model->status = $status;
+      $model->details = $details;
       $model->created_at = Carbon::now();
       $model->save();
       return true;

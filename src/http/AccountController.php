@@ -10,6 +10,7 @@ use App\Http\Controllers\APIController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -17,6 +18,7 @@ class AccountController extends APIController
 {
 
   public $accountCardController = 'App\Http\Controllers\AccountCardController';
+  public $cacheController = 'Increment\Common\Cache\Http\CacheController';
 
     function __construct(){
       $this->model = new Account();
@@ -54,10 +56,12 @@ class AccountController extends APIController
 
      if($accountId){
        $this->createDetails($accountId, $request['account_type']);
-       //send email verification here
-       if($referralCode != null){
-          app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
-       }
+       // app('Increment\Plan\Http\InvitationController')->createWithValidationParams($accountId, $request['email']);
+
+       // //send email verification here
+       // if($referralCode != null){
+       //    // app('Increment\Plan\Http\InvitationController')->confirmReferral($referralCode);
+       // }
        if(env('SUB_ACCOUNT') == true){
           $status = $request['status'];
           if($status == 'ADMIN'){
@@ -71,6 +75,55 @@ class AccountController extends APIController
        }
      }
      return $this->response();
+    }
+
+    public function createSubAccount(Request $request){
+       $request = $request->all();
+       
+       $invitationPassword = $request['password'];
+       
+       $dataAccount = array(
+        'code'  => $this->generateCode(),
+        'password'        => $request['password'] !== null ? Hash::make($request['password']) : "",
+        'status'          => isset($request['account_status']) ? $request['account_status'] :'NOT_VERIFIED',
+        'email'           => $request['email'],
+        'username'        => $request['username'],
+        'account_type'    => $request['account_type'],
+        'token'           => isset($request['token']) ? $request['token'] : null,
+        'created_at'      => Carbon::now()
+       );
+       
+       if(isset($request['token'])){
+         $dataAccount['token'] = $request['token'];
+       }
+
+       $this->model = new Account();
+       $this->insertDB($dataAccount, true);
+       $accountId = $this->response['data'];
+
+       if($accountId){
+        $this->createDetailsSubAccount($accountId, $request['account_type'], $request['first_name'], $request['last_name']);
+        app('Increment\Account\Http\SubAccountController')->createByParamsWithDetails($request['account_id'], $accountId, 'USER', $request['details']);
+        app('App\Http\Controllers\EmailController')->loginInvitation($accountId, $invitationPassword);
+       }
+       return $this->response();
+    }
+
+    public function createDetailsSubAccount($accountId, $type, $firstName, $lastName){
+      $info = new AccountInformation();
+      $info->account_id = $accountId;
+      $info->first_name = $firstName;
+      $info->last_name = $lastName;
+      $info->created_at = Carbon::now();
+      $info->save();
+
+      $billing = new BillingInformation();
+      $billing->account_id = $accountId;
+      $billing->created_at = Carbon::now();
+      $billing->save();
+      if(env('NOTIFICATION_SETTING_FLAG') == true){
+        app('App\Http\Controllers\NotificationSettingController')->insert($accountId);
+      }
     }
 
     public function createAccount($request){
@@ -160,6 +213,7 @@ class AccountController extends APIController
         'status' => $data['status']
       ));
       $this->response['data'] = $result ? true : false;
+      $details = null;
       if($this->response['data'] == true){
         if($data['status'] == 'ACCOUNT_VERIFIED'){
           $details = 'your account is already verified. You can now start creating request but if you want to earn while using Payhiram, Be our Partner. What are you waiting for? Apply Now!';
@@ -173,9 +227,14 @@ class AccountController extends APIController
           $details = 'you are now an official Payhiram partner. Enjoy earning everyday with the maximum amount of 500,000 pesos. We are happy and excited to be part of your source of income.';
         }else if($data['status'] == 'VERIFIED'){
           $details = 'your email has been verified. To complete your registration, we need a little more information including the completion of your profile details.';
+        }else if($data['status'] == 'BLOCKED'){
+          $details = `your our account has been blocked. We've detected suspicious activity on your Payhiram Account and have locked it as a security precaution. If you think this is a mistake, please contact payhiramph@gmail.com.`;
         }
         app('App\Http\Controllers\EmailController')->verification_status($data['id'], $details);
       }
+
+      app($this->cacheController)->delete('account_details_'.$data['id']);
+      app($this->cacheController)->delete('user_'.$data['id']);
       return $this->response();
     }
 
@@ -187,6 +246,19 @@ class AccountController extends APIController
       $result = Account::where('email', '=', $data['email'])->get();
       if(sizeof($result) > 0){
         app('App\Http\Controllers\EmailController')->resetPassword($result[0]['id']);
+        return response()->json(array('data' => true));
+      }else{
+        return response()->json(array('data' => false));
+      }
+    }
+    
+    public function requestResetViaOTP(Request $request){
+      if($this->checkAuthenticatedUser(true) == false){
+        return $this->response();
+      }
+      $data = $request->all();
+      $result = Account::where('email', '=', $data['email'])->get();
+      if(sizeof($result) > 0){
         return response()->json(array('data' => true));
       }else{
         return response()->json(array('data' => false));
@@ -208,6 +280,31 @@ class AccountController extends APIController
         if($updateResult == true){
           $this->response['data'] = true;
           app('App\Http\Controllers\EmailController')->changedPassword($result[0]['id']);
+          return $this->response();
+        }else{
+          return response()->json(array('data' => false));
+        }
+      }else{
+        return response()->json(array('data' => false));
+      }
+    }
+
+
+    public function updatePassByEmail(Request $request){
+      if($this->checkAuthenticatedUser(true) == false){
+        return $this->response();
+      }
+      $data = $request->all();
+      $id = $this->retrieveByEmail($data['email']);
+      $result = Account::where('email', '=', $data['email'])->get();
+      if(sizeof($result) > 0){
+        $updateData = array(
+          'password'  => Hash::make($data['password'])
+        );
+        $updateResult = Account::where('id', '=', $id['id'])->update($updateData);
+        if($updateResult == true){
+          $this->response['data'] = true;
+          app('App\Http\Controllers\EmailController')->changedPassword($id['id']);
           return $this->response();
         }else{
           return response()->json(array('data' => false));
@@ -249,15 +346,17 @@ class AccountController extends APIController
 
     public function retrieveAccountAdmin(Request $request){
       $data = $request->all();
+      $con = $data['condition'];
       $this->model = new Account();
       $result = $this->retrieveDB($data);
+      $size = Account::where($con[0]['column'], $con[0]['clause'], $con[0]['value'])->where($con[1]['column'], $con[1]['clause'], $con[1]['value'])->get();
       if(sizeof($result) > 0){
         $i = 0;
         foreach ($result as $key) {
           $result[$i] = $this->retrieveDetailsOnLogin($result[$i]);
           $i++;
         }
-        return response()->json(array('data' => $result));
+        return response()->json(array('data' => $result, 'size' => sizeof($size)));
       }else{
         return $this->response();
       }
@@ -506,14 +605,22 @@ class AccountController extends APIController
         ->limit($data['limit'])
         ->offset($data['offset'])
         ->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])
+        ->get(['accounts.*', 'T1.first_name', 'T1.last_name', 'cellular_number']);
+      
+      $size = Account::leftJoin('account_informations as T1', 'T1.account_id', '=', 'accounts.id')
+        ->where($con[0]['column'], $con[0]['clause'], $con[0]['value'])
+        ->where('account_type', '!=', 'ADMIN')
+        ->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])
         ->get();
+
       for ($i=0; $i <= sizeof($result)-1 ; $i++) { 
         $item = $result[$i];
-        $result[$i]['total_bookings'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalReservationsByAccount($item['account_id']);
-        $result[$i]['total_spent'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalSpentByAcccount($item['account_id']);
+        $result[$i]['total_bookings'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalReservationsByAccount($item['id']);
+        $result[$i]['total_spent'] = app('Increment\Hotel\Reservation\Http\ReservationController')->retrieveTotalSpentByAcccount($item['id']);
         $result[$i]['name'] = $item['first_name'].' '.$item['last_name'];
       }
       $this->response['data'] = $result;
+      $this->response['size'] = sizeof($size);
       return $this->response();
     }
 
@@ -605,4 +712,104 @@ class AccountController extends APIController
         ));
         return $this->response();
       }
+
+    public function checkIfAccountExist(Request $request){
+      $data = $request->all();
+      if($data['column'] === 'cellular_number'){
+        $result = Account::leftJoin('account_informations as T1', 'T1.account_id', '=', 'accounts.id')->where($data['column'], '=', $data['value'])->get('code');
+      }else{
+        $result = Account::where($data['column'], '=', $data['value'])->get('code');
+      }
+      return sizeof($result) > 0 ? $result[0] : 'null';
+    }
+
+    public function retrieveDashboardAccounts(Request $request){
+      $data = $request->all();
+      $currDate = Carbon::now();
+      $whereArray = array(
+       array( function($query)use($data){
+          if($data['type'] === 'verified'){
+            $query->where('account_type', '=', 'USER')
+              ->where('status', '=', 'ACCOUNT_VERIFIED');
+          }else{
+            $query->where('account_type', '=', $data['type']);
+          }
+      }));
+      $fTransaction = Account::where($whereArray)->first();
+      $resDates = [];
+      $resData = [];
+      if($fTransaction !== null &&  $fTransaction['created_at'] !== null){
+        $startDate = new Carbon($fTransaction['created_at']);
+        $fTransaction['created_at'] = $startDate->toDateTimeString();
+        $dates = [];
+        if($data['date'] === 'yearly'){
+          $tempYearly = CarbonPeriod::create($fTransaction['created_at'], $currDate->toDateTimeString());
+          foreach ($tempYearly as $year) {
+            array_push($dates, $year->toDateString());
+          }
+        }else if($data['date'] === 'current_year'){
+          $dates = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+        }else if($data['date'] === 'custom'){
+        }else if($data['date'] === 'last7days'){
+          $startDate = $currDate->subDays(7);
+          $tempDate = CarbonPeriod::create($startDate->toDateTimeString(), Carbon::now()->toDateTimeString());
+          foreach ($tempDate as $date) {
+            array_push($dates, $date->toDateString());
+          }
+        }else{
+          $month = $data['date'] === 'last_month' ? $currDate->subDays(30)->month : $currDate->month;
+          $carbon = new Carbon(new Carbon(date('Y-m-d', strtotime('now', strtotime($currDate->year.'-' . $month . '-01'))), $this->response['timezone']));
+          $i=0;
+          while (intval($carbon->month) == intval($month)){
+            $dates[$carbon->weekOfMonth][$i] = $carbon->toDateString();
+            $carbon->addDay();
+            $i++;
+          }
+        }
+        if($data['date'] === 'yearly'){
+          $temp = Account::select(DB::raw('COUNT(*) as total'),  DB::raw('YEAR(created_at) as year'))
+            ->where($whereArray)
+            ->groupBy(DB::raw('YEAR(created_at)'))
+            ->get();
+          if(sizeof($temp) > 0){
+            for ($i=0; $i <= sizeof($temp)-1 ; $i++) { 
+              $item = $temp[$i];
+              array_push($resDates, $item['year']);
+              array_push($resData, $item['total']);
+            }
+          }
+        }else if($data['date'] === 'current_year'){
+          foreach ($dates as $key) {
+            $temp = Account::where($whereArray)
+              ->where('created_at', 'like', '%'.$currDate->year.'-'.$key.'%')->count();
+            array_push($resDates, $key);
+            array_push($resData, $temp);
+          }
+        }else if($data['date'] === 'last_month'){
+          foreach ($dates as $key) {
+            $temp = Account::where($whereArray)->whereBetween('created_at', [$key[array_key_first($key)], end($key)])->count();
+            array_push($resDates, $key);
+            array_push($resData, $temp);
+          }
+        }else if($data['date'] === 'current_month'){
+          foreach ($dates as $key) {
+            $temp = Account::where($whereArray)->whereBetween('created_at', [$key[array_key_first($key)], end($key)])->count();
+            array_push($resDates, array_search($key, $dates));
+            array_push($resData, $temp);
+          }
+        }else if($data['date'] === 'last7days'){
+          $startDate = $currDate->subDays(7);
+          foreach ($dates as $key) {
+            $temp = Account::where($whereArray)->whereBetween('created_at', [$key, Carbon::now()->toDateTimeString()])->count();
+            array_push($resDates, $key);
+            array_push($resData, $temp);
+          }
+        }
+        $this->response['data'] = array(
+          'dates' => $resDates,
+          'result' => $resData
+        );
+      }
+      return $this->response();
+    }
 }
