@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureTokenIsValid;
 $route = env('PACKAGE_ROUTE', '').'/accounts/';
 $controller = 'Increment\Account\Http\AccountController@';
 Route::post($route.'create', $controller."create");
+Route::post($route.'retrieve', $controller."retrieve");
 Route::post($route.'request_reset',  $controller."requestReset");
 Route::post($route.'update_password', $controller.'updatePassword');
 Route::post($route.'social_create', $controller.'createSocialAccount');
