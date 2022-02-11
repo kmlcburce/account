@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureTokenIsValid;
 $route = env('PACKAGE_ROUTE', '').'/accounts/';
 $controller = 'Increment\Account\Http\AccountController@';
 Route::post($route.'create', $controller."create");
+Route::post($route.'retrieve', $controller."retrieve");
 Route::post($route.'request_reset',  $controller."requestReset");
 Route::post($route.'request_reset_via_otp',  $controller."requestResetViaOTP");
 Route::post($route.'retrieve_account_dashboard',  $controller."retrieveDashboardAccounts");
