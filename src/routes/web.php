@@ -41,7 +41,7 @@ Route::middleware(EnsureTokenIsValid::class)->group(function () {
       $route = env('PACKAGE_ROUTE', '').'/accounts/';
       $controller = 'Increment\Account\Http\AccountController@';
       // Route::post($route.'create', $controller."create");
-      Route::post($route.'retrieve', $controller."retrieve");
+      // Route::post($route.'retrieve', $controller."retrieve");
       Route::post($route.'retrieve_accounts', $controller.'retrieveAccounts');
       Route::post($route.'retrieve_account_profile', $controller.'retrieveAccountProfile');
       Route::post($route.'update', $controller."update");
