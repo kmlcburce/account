@@ -387,13 +387,22 @@ class AccountController extends APIController
 
     public function retrieveAccounts(Request $request){
       $data = $request->all();
-      if(isset($data['accountType'])){
-        $con = $data['condition'];
-        $result = Account::where('account_type', '=', $data['accountType'])->where($con[0]['column'], $con[0]['clause'], $con[0]['value'])->limit($data['limit'])
-          ->offset($data['offset'])->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])->get();
-      }else{
-        $this->model = new Account();
-        $result = $this->retrieveDB($data);
+      if($data['condition'][0]['column'] == 'first_name' || $data['condition'][0]['column'] == 'last_name') {
+        $result = Account::leftJoin('account_informations as T1', 'T1.account_id', '=', 'accounts.id')
+        ->where('T1.'.$data['condition'][0]['column'], $data['condition'][0]['clause'], $data['condition'][0]['value'])
+        ->limit($data['limit'])
+        ->offset($data['offset'])
+        ->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])
+        ->get();
+      } else {
+        if(isset($data['accountType'])){
+          $con = $data['condition'];
+          $result = Account::where('account_type', '=', $data['accountType'])->where($con[0]['column'], $con[0]['clause'], $con[0]['value'])->limit($data['limit'])
+            ->offset($data['offset'])->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])->get();
+        }else{
+          $this->model = new Account();
+          $result = $this->retrieveDB($data);
+        }
       }
       if(!$result){
         $this->response['data'] = [];
@@ -419,7 +428,16 @@ class AccountController extends APIController
         $condition = $data['condition'];
         if(sizeof($condition) == 1){
           $con = $condition[0];
-          $this->response['size'] = Account::where('deleted_at', '=', null)->where($con['column'], $con['clause'], $con['value'])->count();
+          if($con['column'] != 'first_name' && $con['column'] != 'last_name') {
+            $this->response['size'] = Account::where('deleted_at', '=', null)->where($con['column'], $con['clause'], $con['value'])->count();
+          } else {
+            $this->response['size'] = Account::leftJoin('account_informations as T1', 'T1.account_id', '=', 'accounts.id')
+            ->where('T1.'.$data['condition'][0]['column'], $data['condition'][0]['clause'], $data['condition'][0]['value'])
+            ->limit($data['limit'])
+            ->offset($data['offset'])
+            ->orderBy(array_keys($data['sort'])[0], array_values($data['sort'])[0])
+            ->count();
+          }
         }
         if(sizeof($condition) == 2){
           $con = $condition[0];
