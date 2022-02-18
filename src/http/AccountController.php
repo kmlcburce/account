@@ -511,6 +511,10 @@ class AccountController extends APIController
     public function updateAccountType(Request $request){ 
       $data = $request->all();
       $this->updateDB($data);
+      if(isset($data['id'])){
+        app($this->cacheController)->delete('account_details_'.$data['id']);
+        app($this->cacheController)->delete('user_'.$data['id']);
+      }
       return $this->response();
     }
 
