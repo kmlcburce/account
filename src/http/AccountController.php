@@ -518,6 +518,16 @@ class AccountController extends APIController
       return $this->response();
     }
 
+    public function updateAccountTypeByParams($data){
+      $this->model = new Account();
+      $this->updateDB($data);
+      if(isset($data['id'])){
+        app($this->cacheController)->delete('account_details_'.$data['id']);
+        app($this->cacheController)->delete('user_'.$data['id']);
+      }
+      return $this->response();
+    }
+
     public function updateEmail(Request $request){
       if($this->checkAuthenticatedUser() == false){
         return $this->response();

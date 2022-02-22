@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class MerchantController extends APIController
 {
-
+  public $cacheController = 'Increment\Common\Cache\Http\CacheController';
   function __construct()
   {
     $this->model = new Merchant();
@@ -53,6 +53,18 @@ class MerchantController extends APIController
     } else {
       return $code;
     }
+  }
+
+  public function update(Request $request){
+    $data = $request->all();
+    $this->model = new Merchant();
+    $this->updateDB($data);
+    
+    if(isset($data['account_id'])){
+      app($this->cacheController)->delete('account_details_'.$data['account_id']);
+      app($this->cacheController)->delete('user_'.$data['account_id']);
+    }
+    return $this->response();
   }
 
   public function getByParams($column, $value)
