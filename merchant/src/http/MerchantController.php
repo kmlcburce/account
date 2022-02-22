@@ -29,6 +29,8 @@ class MerchantController extends APIController
       return $this->response();
     } else {
       $data['code'] = $this->generateCode();
+      $data['created_at'] = Carbon::now();
+      $data['deleted_at'] = null;
       $data['status'] = 'not_verified';
       $this->model = new Merchant();
       $this->insertDB($data);
