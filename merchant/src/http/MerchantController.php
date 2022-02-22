@@ -66,6 +66,13 @@ class MerchantController extends APIController
       app($this->cacheController)->delete('account_details_'.$data['account_id']);
       app($this->cacheController)->delete('user_'.$data['account_id']);
     }
+
+    if(isset($data['next_route'])){
+      app('Increment\Account\Http\AccountController')->updateAccountTypeByParams(array(
+          'id' => $data['account_id'],
+          'status' => $data['next_route']
+      ));
+    }
     return $this->response();
   }
 
