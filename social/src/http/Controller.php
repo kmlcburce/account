@@ -6,14 +6,85 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\APIController;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Increment\Account\Models\Account;
+use Increment\Account\Models\AccountInformation;
+use Increment\Account\Models\AccountProfile;
 
 class Controller extends APIController
 {
   function __construct(){
+    $this->model = new Account();
+    $this->validation = array(  
+      "email" => "unique:accounts",
+      "username"  => "unique:accounts"
+    );
+    $this->notRequired = array(
+      'token',
+      "password",
+      "email"
+    );
   }
 
   public function create(Request $request){
     $data = $request->all();
+
+    $dataAccount = array(
+      'code'  => $this->generateCode(),
+      'password'        => "",
+      'status'          => isset($data['account_status']) ? $data['account_status'] :'NOT_VERIFIED',
+      'email'           => $data['email'],
+      'username'        => $data['username'],
+      'account_type'    => $data['account_type'],
+      'token'           => isset($data['token']) ? $data['token'] : null,
+      'created_at'      => Carbon::now()
+    );
+
+    $this->model = new Account();
+    $this->insertDB($dataAccount, true);      
+
+    $id = $this->response['data'];
+    
+    if($id){
+      if(isset($data['profile'])){
+        $data['profile']['account_id'] = $id;
+        $this->profile($data['profile']);
+      }
+
+      if(isset($data['merchant'])){
+        $data['merchant']['account_id'] = $id;
+        $this->profile($data['merchant']);
+      }
+
+      if(isset($data['information'])){
+        $data['information']['account_id'] = $id;
+        $this->profile($data['information']);
+      }
+    }
+
+    return $this->response();
   }
 
+  public function profile($data){
+    $info = new AccountProfile();
+    $info->account_id = $data['account_id'];
+    $info->url = $data['url'];
+    $info->created_at = Carbon::now();
+    $info->save();
+  }
+
+  public function merchant($data){
+    app('\Increment\Account\Merchant\Http\MerchantController')->createByParams(array(
+      'account_id' => $data['account_id'],
+      'name'  => $data['name']
+    ));
+  }
+
+  public function information($data){
+    $info = new AccountInformation();
+    $info->account_id = $data['account_id'];
+    $info->first_name = $data['first_name'];
+    $info->last_name = $data['last_name'];
+    $info->created_at = Carbon::now();
+    $info->save();
+  }
 }
