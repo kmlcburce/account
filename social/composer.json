@@ -1,0 +1,26 @@
+{
+    "name": "increment/social",
+    "description": "Increment Core Social Backend",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "kennCK",
+            "email": "kennettecanales@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Increment\\Account\\Social": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Increment\\Account\\Social\\MerchantServiceProvider"
+            ]
+        }
+    }
+}
