@@ -12,4 +12,8 @@ class Controller extends APIController
   function __construct(){
   }
 
+  public function create(Request $request){
+    $data = $request->all();
+  }
+
 }
