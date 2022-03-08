@@ -24,7 +24,7 @@ class Controller extends APIController
       "email"
     );
   }
-  
+
   public function generateCode(){
     $code = 'acc_'.substr(str_shuffle($this->codeSource), 0, 60);
     $codeExist = Account::where('code', '=', $code)->get();
@@ -36,41 +36,58 @@ class Controller extends APIController
   }
 
 
-  public function create(Request $request){
+  public function auth(Request $request){
     $data = $request->all();
 
-    $dataAccount = array(
-      'code'  => $this->generateCode(),
-      'password'        => "",
-      'status'          => isset($data['account_status']) ? $data['account_status'] :'NOT_VERIFIED',
-      'email'           => $data['email'],
-      'username'        => $data['username'],
-      'account_type'    => $data['account_type'],
-      'token'           => isset($data['token']) ? $data['token'] : null,
-      'created_at'      => Carbon::now()
-    );
+    if($data['payload'] == 'signup'){
+      $dataAccount = array(
+        'code'  => $this->generateCode(),
+        'password'        => "",
+        'status'          => isset($data['account_status']) ? $data['account_status'] :'NOT_VERIFIED',
+        'email'           => $data['email'],
+        'username'        => $data['username'],
+        'account_type'    => $data['account_type'],
+        'token'           => isset($data['token']) ? $data['token'] : null,
+        'created_at'      => Carbon::now()
+      );
 
-    $this->model = new Account();
-    $this->insertDB($dataAccount, true);      
+      $this->model = new Account();
+      $this->insertDB($dataAccount, true);      
 
-    $id = $this->response['data'];
-    
-    if($id){
-      if(isset($data['profile'])){
-        $data['profile']['account_id'] = $id;
-        $this->profile($data['profile']);
-      }
+      $id = $this->response['data'];
+      
+      if($id){
+        if(isset($data['profile'])){
+          $data['profile']['account_id'] = $id;
+          $this->profile($data['profile']);
+        }
 
-      if(isset($data['merchant'])){
-        $data['merchant']['account_id'] = $id;
-        $this->profile($data['merchant']);
-      }
+        if(isset($data['merchant'])){
+          $data['merchant']['account_id'] = $id;
+          $this->profile($data['merchant']);
+        }
 
-      if(isset($data['information'])){
-        $data['information']['account_id'] = $id;
-        $this->profile($data['information']);
+        if(isset($data['information'])){
+          $data['information']['account_id'] = $id;
+          $this->profile($data['information']);
+        }
+      }      
+    }else if($data['payload'] == 'signin'){
+      $result = Account::whereRaw("BINARY email='".$data["username"]."' AND username='".$data['username']."'")->get();
+      if($result){
+        Account::where('id', '=', $result[0]['id'])->update(array(
+            'token' => json_encode($data['token']),
+            'updated_at' => Carbon::now()
+          ));
+
+        $this->response['data'] = true;
+        $this->response['error'] = null;
+      }else{
+        $this->response['error'] = 'User not found';
+        $this->response['data'] = null;
       }
     }
+
 
     return $this->response();
   }
