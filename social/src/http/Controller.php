@@ -73,8 +73,8 @@ class Controller extends APIController
         }
       }      
     }else if($data['payload'] == 'signin'){
-      $result = Account::whereRaw("BINARY email='".$data["username"]."' AND username='".$data['username']."'")->get();
-      if($result){
+      $result = Account::whereRaw("BINARY email='".$data["username"]."'")->get();
+      if($result && sizeof($result) > 0){
         Account::where('id', '=', $result[0]['id'])->update(array(
             'token' => json_encode($data['token']),
             'updated_at' => Carbon::now()
