@@ -24,6 +24,17 @@ class Controller extends APIController
       "email"
     );
   }
+  
+  public function generateCode(){
+    $code = 'acc_'.substr(str_shuffle($this->codeSource), 0, 60);
+    $codeExist = Account::where('code', '=', $code)->get();
+    if(sizeof($codeExist) > 0){
+      $this->generateCode();
+    }else{
+      return $code;
+    }
+  }
+
 
   public function create(Request $request){
     $data = $request->all();
