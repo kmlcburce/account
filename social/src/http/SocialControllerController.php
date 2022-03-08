@@ -10,7 +10,7 @@ use Increment\Account\Models\Account;
 use Increment\Account\Models\AccountInformation;
 use Increment\Account\Models\AccountProfile;
 
-class Controller extends APIController
+class SocialController extends APIController
 {
   function __construct(){
     $this->model = new Account();
